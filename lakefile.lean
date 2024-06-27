@@ -12,6 +12,9 @@ package «TateThesis» where
 require mathlib from git
   "https://github.com/leanprover-community/mathlib4.git"
 
+require AdeleRingLocallyCompact from git
+  "https://github.com/smmercuri/adele-ring_locally-compact.git" @ "main"
+
 @[default_target]
 lean_lib «TateThesis» where
   -- add any library configuration options here
