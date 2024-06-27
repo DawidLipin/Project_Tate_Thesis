@@ -1,7 +1,7 @@
 import Mathlib
-import AdeleRingLocallyCompact.RingTheory.DedekindDomain.FiniteSAdeleRing
-import AdeleRingLocallyCompact.NumberTheory.NumberField.InfiniteAdeleRing
-import AdeleRingLocallyCompact.NumberTheory.NumberField.AdeleRing
+-- import AdeleRingLocallyCompact.RingTheory.DedekindDomain.FiniteSAdeleRing
+-- import AdeleRingLocallyCompact.NumberTheory.NumberField.InfiniteAdeleRing
+-- import AdeleRingLocallyCompact.NumberTheory.NumberField.AdeleRing
 import Mathlib.Analysis.Fourier.FourierTransform
 
 noncomputable section
