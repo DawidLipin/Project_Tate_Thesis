@@ -25,25 +25,8 @@ instance adeleRingLocallyCompact : LocallyCompactSpace (adeleRing K) := by
 ---------------------------------------------
 -- Def f_hat
 
-theorem topcomp1 :  TopologicalSpace (adeleRing K) := by
-  exact AdeleRing.topologicalSpace K
-
 instance messpc :  MeasurableSpace (adeleRing K) :=
   by exact borel (adeleRing K)
-
-instance grpadl :  Group (adeleRing K) := by
-  sorry
-
--- Is using (AddChar (adeleRing K) circle) instead of (PontryaginDual (adeleRing K)) an issue? I don't think so
--- TO ALIGN WITHBOOK USE IDENTITY ELEMENT FOR w below I think
-
-def f_hat_old
-    (K : Type*) [Field K] [NumberField K]
-    (μ : MeasureTheory.Measure (adeleRing K)) [μ.IsHaarMeasure]
-    (f : (adeleRing K) → ℂ): (AddChar (adeleRing K) circle) → ((adeleRing K) → ℂ) :=
-  fun e => (fun w => (Fourier.fourierIntegral e μ f w))
-
--- Replace element with w
 
 -- def f_hat
 --     (K : Type*) [Field K] [NumberField K]
@@ -51,19 +34,20 @@ def f_hat_old
 --     (f : (adeleRing K) → ℂ) (w : (adeleRing K)): (AddChar (adeleRing K) circle) → ℂ :=
 --   fun e => (Fourier.fourierIntegral e μ f w)
 
-
 def f_hat
     (K : Type*) [Field K] [NumberField K]
     {AK : Type*} [TopologicalSpace AK] [MeasurableSpace AK]
-    [Group AK] [CommRing AK] (μ : MeasureTheory.Measure AK) [μ.IsHaarMeasure]
+    [CommRing AK] (μ : MeasureTheory.Measure AK) [μ.IsAddHaarMeasure]
     (f : AK → ℂ) (w : AK): (AddChar AK circle) → ℂ :=
   fun e => (Fourier.fourierIntegral e μ f w)
+
+
 
 
 ---------------------------------------------
 -- Cond 1
 
-variable (μ : MeasureTheory.Measure (adeleRing K)) [μ.IsHaarMeasure] (f : (adeleRing K) → ℂ)
+variable (μ : MeasureTheory.Measure (adeleRing K)) [μ.IsAddHaarMeasure] (f : (adeleRing K) → ℂ)
 
 instance topchar : TopologicalSpace (AddChar (adeleRing K) circle) := by
   sorry
@@ -73,7 +57,7 @@ instance messpc_hat :  MeasurableSpace (AddChar (adeleRing K) circle) :=
 
 def Cond1 (f : (adeleRing K) → ℂ)
     (μ : MeasureTheory.Measure (adeleRing K))
-    [μ.IsHaarMeasure] (w : (adeleRing K))
+    [μ.IsAddHaarMeasure] (w : (adeleRing K))
     (μ_hat : MeasureTheory.Measure (AddChar (adeleRing K) circle))
     [μ_hat.IsHaarMeasure] :=
   (MeasureTheory.Memℒp f 1 μ) ∧ (Continuous f) ∧
@@ -125,7 +109,7 @@ instance KtoC : Lattice (K → ℂ) := by
 def f_test : K → (adeleRing K) := fun x => globalEmbedding K x
 
 def Cond2 (f : (adeleRing K) → ℂ) (μ : MeasureTheory.Measure (adeleRing K))
-    [μ.IsHaarMeasure] (w : (adeleRing K))
+    [μ.IsAddHaarMeasure] (w : (adeleRing K))
     (μ_hat : MeasureTheory.Measure (AddChar (adeleRing K) circle))
     [μ_hat.IsHaarMeasure] (y : (adeleRing K)ˣ) :=
   -- let g := fun x => f (y • (x))

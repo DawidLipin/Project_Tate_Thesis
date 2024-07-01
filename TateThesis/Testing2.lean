@@ -45,7 +45,22 @@ def VG (G : Type) [Group G] [TopologicalSpace G]
 def V1G (G : Type) [Group G] [TopologicalSpace G]
     [LocallyCompactSpace G] [T2Space G] [MeasurableSpace G]
     (μ : MeasureTheory.Measure G) [μ.IsHaarMeasure] :=
-  {f | f ∈ Submodule.span ℂ { φ | OfPositiveType G φ μ } ∧ MeasureTheory.Memℒp f 1 μ}
+  {(f : G → ℂ) | (f ∈ Submodule.span ℂ { φ | OfPositiveType G φ μ }) ∧ MeasureTheory.Memℒp f 1 μ}
+
+instance topspc_hat (G : Type) [Group G] [AddGroup G] [TopologicalSpace G]
+    [LocallyCompactSpace G] [T2Space G] [MeasurableSpace G]
+    [CommRing G] :  TopologicalSpace (AddChar G circle) where
+  IsOpen :=
+    sorry
+  isOpen_univ := sorry
+  isOpen_inter := sorry
+  isOpen_sUnion := sorry
+
+
+instance messpc_hat (G : Type) [Group G] [AddGroup G] [TopologicalSpace G]
+    [LocallyCompactSpace G] [T2Space G] [MeasurableSpace G]
+    [CommRing G] :  MeasurableSpace (AddChar G circle) :=
+  by exact borel (AddChar G circle)
 
 theorem FourierInversionFormula (G : Type) [Group G] [AddGroup G] [TopologicalSpace G]
     [LocallyCompactSpace G] [T2Space G] [MeasurableSpace G]

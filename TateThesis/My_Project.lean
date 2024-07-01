@@ -24,24 +24,23 @@ theorem locallyCompactSpace : LocallyCompactSpace (adeleRing K) := by
 
 -- Show elemeents of PontryaginDual A are same as AddChar?
 
--- def f_hat
+-- Def f_hat
+
 theorem topcomp1 :  TopologicalSpace (adeleRing K) := by
   exact AdeleRing.topologicalSpace K
 
 instance messpc :  MeasurableSpace (adeleRing K) :=
   by exact borel (adeleRing K)
 
-instance grpadl :  Group (adeleRing K) := by
-  sorry
-
 -- Is using (AddChar (adeleRing K) circle) instead of (PontryaginDual (adeleRing K)) an issue? I don't think so
 -- TO ALIGN WITH BOOK USE IDENTITY ELEMENT FOR w below I think
 
 def f_hat
     (K : Type*) [Field K] [NumberField K]
-    (μ : MeasureTheory.Measure (adeleRing K)) [μ.IsHaarMeasure]
-    (f : (adeleRing K) → ℂ): (AddChar (adeleRing K) circle) → ((adeleRing K) → ℂ) :=
-  fun e => (fun w => (Fourier.fourierIntegral e μ f w))
+    {AK : Type*} [TopologicalSpace AK] [MeasurableSpace AK]
+    [CommRing AK] (μ : MeasureTheory.Measure AK) [μ.IsAddHaarMeasure]
+    (f : AK → ℂ) (w : AK): (AddChar AK circle) → ℂ :=
+  fun e => (Fourier.fourierIntegral e μ f w)
 
 
 -- Ideles
@@ -49,9 +48,20 @@ def f_hat
 
 
 -- Condition 1
-def Cond1 (f : (adeleRing K) → ℂ) (μ : MeasureTheory.Measure (adeleRing K))
-    [μ.IsHaarMeasure] (x : (AddChar (adeleRing K) circle)):=
-  (MeasureTheory.Memℒp f 1 μ) ∧ (Continuous f)∧ ((MeasureTheory.Memℒp ((f_hat K μ f) x) 1 μ) ∧ (Continuous f))
+
+instance topchar : TopologicalSpace (AddChar (adeleRing K) circle) := by
+  sorry
+
+instance messpc_hat :  MeasurableSpace (AddChar (adeleRing K) circle) :=
+  by exact borel (AddChar (adeleRing K) circle)
+
+def Cond1 (f : (adeleRing K) → ℂ)
+    (μ : MeasureTheory.Measure (adeleRing K))
+    [μ.IsAddHaarMeasure] (w : (adeleRing K))
+    (μ_hat : MeasureTheory.Measure (AddChar (adeleRing K) circle))
+    [μ_hat.IsHaarMeasure] :=
+  (MeasureTheory.Memℒp f 1 μ) ∧ (Continuous f) ∧
+  ((MeasureTheory.Memℒp (f_hat K μ f w) 1 μ_hat) ∧ (Continuous (f_hat K μ f w)))
 
 -- Need Fourier inversion formula for above
 --
