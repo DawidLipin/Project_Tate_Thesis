@@ -90,10 +90,6 @@ theorem fund_dom :  MeasureTheory.IsFundamentalDomain K D μ := by
 def globalEmbedding : K →+* adeleRing K :=
   RingHom.prod (InfiniteAdeleRing.globalEmbedding K) (FiniteAdeleRing.globalEmbedding _ _)
 
-instance HSMULAxKA : HSMul (adeleRing K)ˣ K (adeleRing K) := by
-  -- use smul_adele
-  sorry
-
 -- You can replace those 2 instances by getting ring hom between adeleRing K and Pntryagin dual and (AddChar...)
 instance test : HAdd (AddChar (adeleRing K) ↥circle) K (AddChar (adeleRing K) ↥circle) := by
   -- use smul_adele
@@ -103,23 +99,48 @@ instance test2 : HSMul (adeleRing K)ˣ (AddChar (adeleRing K) ↥circle) (AddCha
   -- use smul_adele
   sorry
 
-instance KtoC : Lattice (K → ℂ) := by
+instance KtoC : HAdd (adeleRing K) K (adeleRing K) := by
   sorry
 
 def f_test : K → (adeleRing K) := fun x => globalEmbedding K x
 
-def Cond2 (f : (adeleRing K) → ℂ) (μ : MeasureTheory.Measure (adeleRing K))
+def Cond2_a (f : (adeleRing K) → ℂ) (μ : MeasureTheory.Measure (adeleRing K))
     [μ.IsAddHaarMeasure] (w : (adeleRing K))
     (μ_hat : MeasureTheory.Measure (AddChar (adeleRing K) circle))
     [μ_hat.IsHaarMeasure] (y : (adeleRing K)ˣ) :=
   -- let g := fun x => f (y • (x))
   -- let g := fun x => ∑' (i : K), f (y • (x + i))
   -- Summable (∑' (i : K), (fun x => |f (y • (x + i))|))
-  let f_sum := fun (i : K) => |(fun x => f (y • (x + i)))|
-  let f_hat_sum := fun (i : K) => |(fun (x : (AddChar (adeleRing K) circle)) => (f_hat K μ f w) (y • (x + i)))|
+  let f_sum : K → (adeleRing K) → ℂ := fun (i : K) => (fun x => Complex.abs (f (y • (x + i))))
+  let f_hat_sum : K → (AddChar (adeleRing K) circle) → ℂ :=
+      fun (i : K) => (fun (x : (AddChar (adeleRing K) circle)) =>
+      Complex.abs ((f_hat K μ f w) (y • (x + i))))
   -- Summable (∑' (i : K), (fun x => |f (y • (x + i))|))
   -- ∧ Summable (∑' (i : K), |(fun x => ((f_hat K μ f w) (y • (x + i))))|) -- This is wrong
   Summable f_sum  ∧ Summable f_hat_sum
+
+instance test1 : HAdd C K (adeleRing K) := by
+  sorry
+
+instance test3 :  HSMul C (adeleRing K) (adeleRing K) := by
+  sorry
+
+def Cond2_b (f : (adeleRing K) → ℂ) (μ : MeasureTheory.Measure (adeleRing K))
+    [μ.IsAddHaarMeasure] (w : (adeleRing K))
+    (μ_hat : MeasureTheory.Measure (AddChar (adeleRing K) circle))
+    [μ_hat.IsHaarMeasure]
+    -- Compact set
+    (C : Set ((adeleRing K)ˣ)) (h1: IsCompact C)
+    (h2: HSMul C K (adeleRing K))
+    (h3: HSMul C (AddChar (adeleRing K) circle) (AddChar (adeleRing K) circle))
+    -- Fundamental domain
+    (D : Set (adeleRing K)) (h4: MeasureTheory.IsFundamentalDomain K D μ)
+    :=
+  let f_sum : K → (D × C) → ℂ := fun (i : K) => (fun (z : (D × C)) => f (z.2 • (z.1 + i)))
+  -- Here I need to be able to somehow use the isomorphism of A and AddChar...
+  let f_hat_sum : K → (D × C) → ℂ := fun (i : K) => (fun (z : (D × C)) => (f_hat K μ f w) (z.2 • (z.1 + i)))
+  -- TendstoUniformly (fun (t : Finset K) (z : ((AddChar (adeleRing K) circle)), (y : C))) => ∑ n ∈ t, f n x) (fun (x : β) => ∑' (n : α), f n x) Filter.atTop
+  1=1
 
 --
 
@@ -162,7 +183,7 @@ instance CmulR : HMul ℂ ℝ ℂ := by
 def Cond3 (f : (adeleRing K)ˣ → ℂ) (μ : MeasureTheory.Measure (adeleRing K)ˣ)
     [μ.IsHaarMeasure] (w : (adeleRing K)ˣ)
     (μ_hat : MeasureTheory.Measure (AddChar (adeleRing K)ˣ circle))
-    [μ_hat.IsHaarMeasure] (y : (adeleRing K)ˣ) (σ : ℝ) :=
+    [μ_hat.IsAddHaarMeasure] (y : (adeleRing K)ˣ) (σ : ℝ) :=
   -- Change |x| below once you define it properly as on page 65
   let g := fun x => ((f (x)) * (|x|^σ))
   let g_hat := fun x => ((f_hat K μ g w) (x)) * (|x|^σ)
