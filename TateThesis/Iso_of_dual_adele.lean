@@ -16,23 +16,11 @@ variable (K : Type*) [Field K] [NumberField K]
 def adeleRing_hat :=
   {ψ : (AddChar (adeleRing K) circle) // Continuous ψ}
 
--- instance : FunLike (adeleRing_hat K) (adeleRing K) circle := by
---   unfold FunLike
---   sorry
-
--- Not needed but interesting issue
--- lemma ψ_a_zero_one (a : adeleRing K)
---     (ψ : adeleRing_hat K) : (fun x ↦ ψ (a * x)) 0 = 1 := by
---   have h1 : ψ.val 0 = 1 := by exact ψ.val.map_zero_one'
---   simp only [mul_zero]
---   -- How is this not enough?
---   -- exact h1
---   sorry
-
+-- Use AddChar.mulShift instead
 def ψ_a (a : adeleRing K)
     (ψ : adeleRing_hat K) : (AddChar (adeleRing K) circle) where
       toFun := fun x => ψ.val (a * x)
-      map_zero_one' := by -- Can't make this a separate lemma
+      map_zero_one' := by
         simp only [mul_zero]
         exact ψ.val.map_zero_one'
       map_add_mul' := by
@@ -70,8 +58,10 @@ instance : Group (adeleRing_hat K)
 instance : TopologicalSpace (adeleRing_hat K) := by
   sorry
 
-theorem adeleHatIso (ψ : adeleRing_hat K) : adeleRing K ≅ adeleRing_hat K where
+def adeleHatIso (ψ : adeleRing_hat K) : adeleRing K ≅ adeleRing_hat K where
   hom := IsoFunAdele K ψ
   inv := sorry
   hom_inv_id := sorry
   inv_hom_id := sorry
+
+#lint
