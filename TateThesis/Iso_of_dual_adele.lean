@@ -42,19 +42,6 @@ def IsoFunAdele (ψ : adeleRing_hat K) : (adeleRing K) → (adeleRing_hat K) :=
   fun a => ⟨(ψ_a K a ψ), (psiaContinuous K a ψ)⟩
 
 
-
-
-instance : Group (adeleRing_hat K)
-  := by sorry
-  -- where
-  -- mul := _
-  -- mul_assoc := _
-  -- one := _
-  -- one_mul := _
-  -- mul_one := _
-  -- inv := _
-  -- mul_left_inv := _
-
 instance : TopologicalSpace (adeleRing_hat K) := by
   sorry
 
