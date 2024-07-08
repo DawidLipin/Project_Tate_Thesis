@@ -21,12 +21,6 @@ theorem locallyCompactSpace : LocallyCompactSpace (adeleRing K) := by
 instance adeleRingLocallyCompact : LocallyCompactSpace (adeleRing K) := by
   exact locallyCompactSpace K
 
-instance test1 : TopologicalSpace K := by
-  sorry
-
-instance test2 : MeasurableSpace K := by
-  exact borel K
-
 -- Norm on Ideles
 
 -- Unit of products is product of units
@@ -117,11 +111,56 @@ lemma unit_prod (A : Type) [CommRing A]
         exact rfl
 
 
-def norm_fin_idele : (finiteAdeleRing (ringOfIntegers K) K)ˣ → ℝ := fun _ => 1
+-- Testing different notations. Will be deleted in final version
+lemma test : (infiniteAdeleRing K) = (Π (v : InfinitePlace K), v.completion) := by
+  rfl
+lemma test2 : (infiniteAdeleRing K) = (∀ (v : InfinitePlace K), v.completion) := by
+  rfl
+lemma test3 : (infiniteAdeleRing K) = ((v : InfinitePlace K) → v.completion) := by
+  rfl
+lemma test4 : (∀ (v : InfinitePlace K), v.completion) := by
+  intro v
+  unfold InfinitePlace at v
+  cases' v with v hv
+  -- cases' hv
+  sorry
+
+-- Just use the corresponding place?
+-- Does this say what I think it says?
+def inf_adele_inj_C (v : InfinitePlace K): (v.completion) →+* ℂ :=
+  let test := v.2
+  sorry
+
+
+def norm_inf_idele: InfinitePlace K → AbsoluteValue K ℝ := fun x => x.1 -- Is this correct?
 
 
 
-def norm_inf_idele : (infiniteAdeleRing K)ˣ → ℝ := fun _ => 1
+
+-- Finite adeles
+
+def NP (P : Ideal (ringOfIntegers K)): ℕ :=
+  Nat.card ((ringOfIntegers K) ⧸ P)
+
+
+
+-- This will be the e in P^e
+def norm_fin_idele_initial : IsDedekindDomain.HeightOneSpectrum K → ℕ :=
+
+  sorry
+
+
+def norm_fin_idele : IsDedekindDomain.HeightOneSpectrum K → AbsoluteValue K ℝ := sorry
+
+
+
+def norm_fin_idele2 : (finiteAdeleRing (ringOfIntegers K) K) → ℝ := sorry
+
+
+
+-- def norm_inf_idele : (infiniteAdeleRing K)ˣ → ((v : InfinitePlace K) → ℝ) :=
+--   fun x => ((v : InfinitePlace K) → )
+
 
 
 
