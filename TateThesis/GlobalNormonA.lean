@@ -3,19 +3,18 @@ import AdeleRingLocallyCompact.RingTheory.DedekindDomain.FiniteSAdeleRing
 import AdeleRingLocallyCompact.NumberTheory.NumberField.InfiniteAdeleRing
 import AdeleRingLocallyCompact.NumberTheory.NumberField.AdeleRing
 import Mathlib.Analysis.Fourier.FourierTransform
+import Mathlib.RingTheory.Valuation.Basic
+import Mathlib.RingTheory.DedekindDomain.AdicValuation
 
 noncomputable section
 
-open NumberField
-open DedekindDomain
-open VectorFourier
-open MeasureTheory.Measure
+open NumberField DedekindDomain VectorFourier MeasureTheory.Measure Multiplicative DiscreteValuation
 
 variable (K : Type*) [Field K] [NumberField K]
 
 theorem locallyCompactSpace : LocallyCompactSpace (adeleRing K) := by
   haveI := InfiniteAdeleRing.locallyCompactSpace K
-  haveI := FiniteAdeleRing.locallyCompactSpace (ringOfIntegers K) K
+  haveI := FiniteAdeleRing.locallyCompactSpace (𝓞 K) K
   exact Prod.locallyCompactSpace _ _
 
 instance adeleRingLocallyCompact : LocallyCompactSpace (adeleRing K) := by
@@ -23,28 +22,11 @@ instance adeleRingLocallyCompact : LocallyCompactSpace (adeleRing K) := by
 
 -- Norm on Ideles
 
--- Unit of products is product of units
+-- Unit of products is a product of units
 
 def unit_prod_fun (A : Type) [CommRing A]
     (B : Type) [CommRing B]: Aˣ × Bˣ → (A × B) :=
       fun x => ((x.1 : A), (x.2 : B))
-
--- def unit_prod_fun_isunit (A : Type) [CommRing A]
---     (B : Type) [CommRing B] : ∀ (x : (Aˣ × Bˣ)), IsUnit (unit_prod_fun A B x) := by
---   intro x
---   have h1 : IsUnit x.1 := sorry
---   have h1_2 : IsUnit (x.1 : A) := Units.isUnit x.1
---   have h2 : IsUnit x.2 := sorry
---   have h2_2 : IsUnit (x.2 : B) := Units.isUnit x.2
---   have h3 : IsUnit ((x.1 : A), (x.2 : B)) := by
---     simp only [isUnit_iff_exists] at *
---     cases' h1_2 with a h1_2
---     cases' h2_2 with b h2_2
---     use (a, b)
---     simp only [Prod.mk_mul_mk, Prod.mk_eq_one]
---     exact ⟨⟨h1_2.1, h2_2.1⟩ , ⟨h1_2.2, h2_2.2⟩⟩
---   unfold unit_prod_fun
---   exact h3
 
 def unit_prod_fun2 (A : Type) [CommRing A]
     (B : Type) [CommRing B]: Aˣ × Bˣ → (A × B)ˣ := fun
@@ -53,14 +35,11 @@ def unit_prod_fun2 (A : Type) [CommRing A]
         inv := unit_prod_fun A B (fst⁻¹, snd⁻¹)
         val_inv := by
           simp only [unit_prod_fun, Prod.mul_def]
-          have h1 : (fst : A) * fst⁻¹ = 1 := by sorry
-          have h2 : (snd : B) * snd⁻¹ = 1 := by sorry
-          simp only [h1, h2, Prod.mk_eq_one, and_self]
+          simp only [Units.mul_inv, Prod.mk_eq_one, and_self]
         inv_val := by
           simp only [unit_prod_fun, Prod.mul_def]
-          have h1 : fst⁻¹ * (fst : A) = 1 := by sorry
-          have h2 : snd⁻¹ * (snd : B) = 1 := by sorry
-          simp only [h1, h2, Prod.mk_eq_one, and_self]
+          norm_cast
+          simp only [mul_left_inv, Units.val_one, Prod.mk_eq_one, and_self]
       }
 
 def unit_prod_fun3 (A : Type) [CommRing A]
@@ -96,7 +75,7 @@ def unit_prod_fun3 (A : Type) [CommRing A]
         }
       }
 
-lemma unit_prod (A : Type) [CommRing A]
+def unit_prod (A : Type) [CommRing A]
     (B : Type) [CommRing B]: Aˣ × Bˣ ≃* (A × B)ˣ where
       toFun := unit_prod_fun2 A B
       invFun := unit_prod_fun3 A B
@@ -110,84 +89,86 @@ lemma unit_prod (A : Type) [CommRing A]
         intro x y
         exact rfl
 
+-- Norm on infinite adeles
 
--- Testing different notations. Will be deleted in final version
-lemma test : (infiniteAdeleRing K) = (Π (v : InfinitePlace K), v.completion) := by
-  rfl
-lemma test2 : (infiniteAdeleRing K) = (∀ (v : InfinitePlace K), v.completion) := by
-  rfl
-lemma test3 : (infiniteAdeleRing K) = ((v : InfinitePlace K) → v.completion) := by
-  rfl
-lemma test4 : (∀ (v : InfinitePlace K), v.completion) := by
-  intro v
-  unfold InfinitePlace at v
-  cases' v with v hv
-  -- cases' hv
+open InfiniteAdeleRing
+
+open Classical in
+def infiniteNorm (x : infiniteAdeleRing K) : ℝ := ∏ v, ‖x v‖ ^ (if v.IsReal then 1 else 2)
+
+-- Norm on finite adeles
+
+open IsDedekindDomain IsDedekindDomain.HeightOneSpectrum Multiplicative DiscreteValuation
+
+#check ℤₘ₀
+
+def Zm0.toFun (r : ℝ) (x : ℤₘ₀) : ℝ := WithZero.recZeroCoe 0 (fun z : Multiplicative ℤ ↦ r ^ (toAdd z)) x
+
+variable (r : ℝ)
+
+lemma Zm0.toFun_zero :Zm0.toFun r 0 = 0 := rfl
+
+lemma Zm0.toFun_coe_int (z : ℤ) :Zm0.toFun r (ofAdd z : Multiplicative ℤ) = r ^ z := rfl
+
+lemma Zm0.toFun_coe_mult_int (z : Multiplicative ℤ) :Zm0.toFun r z = r ^ (toAdd z) := rfl
+
+lemma tdrgdfgh (x : ℤ) (y : ℤ) : r ^ (x) * r ^ (y) = r ^ (x + y) := by
+  rw [zpow_add r x y]
   sorry
 
--- Just use the corresponding place?
--- Does this say what I think it says?
-def inf_adele_inj_C (v : InfinitePlace K): (v.completion) →+* ℂ :=
-  let test := v.2
-  sorry
-
-
-def norm_inf_idele: InfinitePlace K → AbsoluteValue K ℝ := fun x => x.1 -- Is this correct?
-
-
-
-
--- Finite adeles
-
-def NP (P : Ideal (ringOfIntegers K)): ℕ :=
-  Nat.card ((ringOfIntegers K) ⧸ P)
-
-
-
--- This will be the e in P^e
-def norm_fin_idele_initial : IsDedekindDomain.HeightOneSpectrum K → ℕ :=
+lemma test1234 (x : Multiplicative ℤ) (y : Multiplicative ℤ) :
+    Zm0.toFun r (x * y) = Zm0.toFun r (x) * Zm0.toFun r (y) := by
+  rw [Zm0.toFun_coe_mult_int]
+  rw [Zm0.toFun_coe_mult_int]
+  norm_cast
+  rw [Zm0.toFun_coe_mult_int]
+  simp only [toAdd_mul]
 
   sorry
 
-
-def norm_fin_idele : IsDedekindDomain.HeightOneSpectrum K → AbsoluteValue K ℝ := sorry
-
-
-
-def norm_fin_idele2 : (finiteAdeleRing (ringOfIntegers K) K) → ℝ := sorry
-
-
-
--- def norm_inf_idele : (infiniteAdeleRing K)ˣ → ((v : InfinitePlace K) → ℝ) :=
---   fun x => ((v : InfinitePlace K) → )
-
-
-
-
-def norm_Idele : (adeleRing K)ˣ → ℝ := fun _ => 1
-
-
-
-
-
-
-
-
--- def K_comp (G : Type) [Group G] [TopologicalSpace G]
---     [LocallyCompactSpace G] :=
---   {f : (G → ℝ) // (Continuous f) ∧ (HasCompactSupport f)}
-
--- def K_comp_p (G : Type) [Group G] [TopologicalSpace G]
---     [LocallyCompactSpace G] :=
---   {f : (K_comp G) // ∀ x : G, f.val x ≥ 0 ∧ ∃ y : G, f.val y > 0}
-
--- def μ_α (G : Type) [Group G] [AddGroup G]
---     [LocallyCompactSpace G]
---     (μ : MeasureTheory.Measure G) [μ.IsAddHaarMeasure]
---     (α : Gˣ): AddHaarMeasure :=
---   fun f => (fun x => (μ (f.val.val (α * x))))
+def Zm0.toReal (r : ℝ) : ℤₘ₀ →* ℝ where
+  toFun := Zm0.toFun r
+  map_one' := by
+    suffices toFun r 1 = r ^ 0 by
+      convert this
+    exact Zm0.toFun_coe_int r 0
+  map_mul' := by
+    intro x y
+    simp only
+    cases' x with x
+    · have h1: toFun r (0 * y) = toFun r none := rfl
+      rw [← h1]
+      simp only [zero_mul, Zm0.toFun_zero]
+      cases' y
+      · rfl
+      · rfl
+    · cases' y with y
+      · have h1: toFun r 0 = toFun r none := rfl
+        rw [← h1]
+        simp only [zero_mul, Zm0.toFun_zero, mul_zero]
+        rfl
+      · have h1 : Zm0.toFun r (x * y) = Zm0.toFun r (x) * Zm0.toFun r (y) := test1234 r x y
 
 
--- def K_norm (μ : MeasureTheory.Measure K) [μ.IsAddHaarMeasure]
---     (α : Kˣ):  :=
---   1=1
+        exact h1
+
+    -- need to do cases
+
+
+
+
+
+
+
+
+
+def NP (P : Ideal (𝓞 K)): ℕ :=
+  Nat.card ((𝓞 K) ⧸ P)
+
+
+
+
+
+
+
+#lint

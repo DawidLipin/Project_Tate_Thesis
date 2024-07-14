@@ -1,5 +1,6 @@
 import Mathlib.Algebra.Group.AddChar
 import Mathlib.Topology.ContinuousFunction.Algebra
+import Mathlib.Topology.Algebra.ContinuousMonoidHom
 
 open Pointwise Function AddChar
 
@@ -8,7 +9,7 @@ variable (A B C D E F G H : Type*)
   [TopologicalSpace A] [TopologicalSpace B] [TopologicalSpace C] [TopologicalSpace D]
   -- [AddMonoid E] [Monoid E] [TopologicalSpace E]
   [CommGroup F] [TopologicalSpace F] [TopologicalGroup F]
-  [AddGroup G] [TopologicalSpace G]
+  [AddCommGroup G] [TopologicalSpace G]
   [CommMonoid H] [TopologicalSpace H]
 
 
@@ -173,7 +174,7 @@ def coprod (f : ContinuousAddChar A F) (g : ContinuousAddChar B F) :
         · exact Continuous.comp hg (Continuous.snd continuous_id)
 
 -- Already have AddCharinstCommGroup
-instance : CommMonoid (ContinuousAddChar A F) where
+instance instCommMonoid : CommMonoid (ContinuousAddChar A F) where
   mul f g := {
     toFun := f.toFun * g.toFun,
     map_zero_one' := by
@@ -242,36 +243,49 @@ instance [T2Space C] : T2Space (ContinuousAddChar A C) :=
 
 ----------------------------------------- Extra stuff
 
--- What is the problem here?
-
--- def toMonoidHomEquiv : ContinuousAddChar A C ≃ (MonoidHom (Multiplicative A) C) where
 def toContinuousMonoidHomEquiv : ContinuousAddChar A C ≃ (ContinuousMonoidHom (Multiplicative A) C) where
-  toFun φ := φ.toMonoidHom
+  toFun φ := ⟨φ.toMonoidHom, φ.2⟩
   invFun f :=
   { toFun := f.toFun
-    continuous_toFun := by
-      simp only [OneHom.toFun_eq_coe, MonoidHom.toOneHom_coe]
-
-      sorry
+    continuous_toFun := f.continuous_toFun
     map_zero_one' := f.map_one'
     map_add_mul' := f.map_mul' }
   left_inv _ := rfl
   right_inv _ := rfl
 
--- instance instCommMonoid : CommMonoid (ContinuousAddChar G H) := (toMonoidHomEquiv G H).commMonoid
+def toContinuousAddMonoidHomEquiv : ContinuousAddChar A C ≃ (ContinuousAddMonoidHom A (Additive C)) where
+  toFun φ := ⟨φ.toAddMonoidHom, φ.2⟩
+  invFun f :=
+  { toFun := f.toFun
+    continuous_toFun := f.continuous_toFun
+    map_zero_one' := f.map_zero'
+    map_add_mul' := f.map_add' }
+  left_inv _ := rfl
+  right_inv _ := rfl
 
--- instance instCommGroupCont : CommGroup (ContinuousAddChar G H) :=
---   { instCommMonoid with
---     inv := fun ψ ↦ ψ.compAddMonoidHom negAddMonoidHom
---     mul_left_inv := fun ψ ↦ by ext1 x; simp [negAddMonoidHom, ← map_add_mul]}
+def toContinuousAddMonoidHom (φ : ContinuousAddChar A C) : (ContinuousAddMonoidHom A (Additive C)) where
+  toFun := ⟨φ.toFun, φ.2⟩
+  continuous_toFun := f.continuous_toFun
+  map_zero' := φ.map_zero_one'
+  map_add' := φ.map_add_mul'
+
+def compAddMonoidHom (φ : ContinuousAddChar B C) (f : A →+ B) : ContinuousAddChar A C :=
+  (toContinuousAddMonoidHomEquiv A C).symm (φ.toContinuousAddMonoidHom.comp f)
+
+instance instCommGroup : CommGroup (ContinuousAddChar G F) :=
+  { instCommMonoid G F with
+    inv := fun ψ ↦ ⟨ψ.compAddMonoidHom negAddMonoidHom, ψ.2⟩
+    mul_left_inv := fun ψ ↦ by ext1 x; simp [negAddMonoidHom, ← map_add_mul]}
+
+instance instCommGroup : CommGroup (ContinuousAddChar G F) := sorry
 
 -----------------------------------------
 
--- instance : TopologicalGroup (ContinuousAddChar G H) :=
---   let hi := inducing_toContinuousMap A E
---   let hc := hi.continuous
---   { continuous_mul := hi.continuous_iff.mpr (continuous_mul.comp (Continuous.prod_map hc hc))
---     continuous_inv := hi.continuous_iff.mpr (continuous_inv.comp hc) }
+instance : TopologicalGroup (ContinuousAddChar G F) :=
+  let hi := inducing_toContinuousMap A F
+  let hc := hi.continuous
+  { continuous_mul := hi.continuous_iff.mpr (continuous_mul.comp (Continuous.prod_map hc hc))
+    continuous_inv := hi.continuous_iff.mpr (continuous_inv.comp hc) }
 
 -- @[to_additive]
 -- theorem continuous_of_continuous_uncurry {A : Type*} [TopologicalSpace A]
