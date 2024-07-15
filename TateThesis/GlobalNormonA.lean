@@ -100,7 +100,10 @@ def infiniteNorm (x : infiniteAdeleRing K) : ℝ := ∏ v, ‖x v‖ ^ (if v.IsR
 
 open IsDedekindDomain IsDedekindDomain.HeightOneSpectrum Multiplicative DiscreteValuation
 
-#check ℤₘ₀
+@[elab_as_elim]
+protected lemma Zm0.induction_on {motive : ℤₘ₀ → Prop} (zero : motive 0)
+  (of_int : ∀ z : ℤ, motive (ofAdd z : Multiplicative ℤ)) (x : ℤₘ₀) : motive x :=
+WithZero.recZeroCoe zero of_int x
 
 def Zm0.toFun (r : ℝ) (x : ℤₘ₀) : ℝ := WithZero.recZeroCoe 0 (fun z : Multiplicative ℤ ↦ r ^ (toAdd z)) x
 
@@ -112,21 +115,8 @@ lemma Zm0.toFun_coe_int (z : ℤ) :Zm0.toFun r (ofAdd z : Multiplicative ℤ) = 
 
 lemma Zm0.toFun_coe_mult_int (z : Multiplicative ℤ) :Zm0.toFun r z = r ^ (toAdd z) := rfl
 
-lemma tdrgdfgh (x : ℤ) (y : ℤ) : r ^ (x) * r ^ (y) = r ^ (x + y) := by
-  rw [zpow_add r x y]
-  sorry
 
-lemma test1234 (x : Multiplicative ℤ) (y : Multiplicative ℤ) :
-    Zm0.toFun r (x * y) = Zm0.toFun r (x) * Zm0.toFun r (y) := by
-  rw [Zm0.toFun_coe_mult_int]
-  rw [Zm0.toFun_coe_mult_int]
-  norm_cast
-  rw [Zm0.toFun_coe_mult_int]
-  simp only [toAdd_mul]
-
-  sorry
-
-def Zm0.toReal (r : ℝ) : ℤₘ₀ →* ℝ where
+def Zm0.toReal (r : ℝ) (h1: 0 < r) : ℤₘ₀ →* ℝ where
   toFun := Zm0.toFun r
   map_one' := by
     suffices toFun r 1 = r ^ 0 by
@@ -135,35 +125,35 @@ def Zm0.toReal (r : ℝ) : ℤₘ₀ →* ℝ where
   map_mul' := by
     intro x y
     simp only
-    cases' x with x
-    · have h1: toFun r (0 * y) = toFun r none := rfl
-      rw [← h1]
-      simp only [zero_mul, Zm0.toFun_zero]
-      cases' y
-      · rfl
-      · rfl
-    · cases' y with y
-      · have h1: toFun r 0 = toFun r none := rfl
-        rw [← h1]
-        simp only [zero_mul, Zm0.toFun_zero, mul_zero]
-        rfl
-      · have h1 : Zm0.toFun r (x * y) = Zm0.toFun r (x) * Zm0.toFun r (y) := test1234 r x y
-
-
-        exact h1
-
-    -- need to do cases
-
-
-
-
-
-
-
+    induction' x using Zm0.induction_on with x
+    · simp only [Zm0.toFun_zero, zero_mul]
+    · induction' y using Zm0.induction_on with y
+      · simp only [Zm0.toFun_zero, mul_zero]
+      · norm_cast
+        simp only [toFun_coe_mult_int, toAdd_mul, toAdd_ofAdd]
+        have h2: r ^ ((x : ℝ) + (y : ℝ)) = r ^ x * r ^ y := by
+          rw [Real.rpow_add h1 x y]
+          simp only [Real.rpow_int_cast]
+        rw [← h2]
+        norm_cast
 
 
 def NP (P : Ideal (𝓞 K)): ℕ :=
   Nat.card ((𝓞 K) ⧸ P)
+  -- Nat.card (HasQuotient (𝓞 K) P)
+
+lemma NPNeZero (P : Ideal (𝓞 K)): (NP K P) ≠ 0 := by
+  rw [NP]
+
+  sorry
+
+lemma NPGeZero (P : Ideal (𝓞 K)): 0 < (NP K P) := by
+  exact (Nat.pos_of_ne_zero (NPNeZero K P))
+
+
+def finiteLocalNorm (x : finiteAdeleRing (𝓞 K) K) : ℝ := ∏ᶠ v, (Zm0.toReal  (Valuation (x v)))
+
+
 
 
 

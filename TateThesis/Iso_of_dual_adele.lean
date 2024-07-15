@@ -45,7 +45,7 @@ def IsoFunAdele (ψ : adeleRing_hat K) : (adeleRing K) → (adeleRing_hat K) :=
 instance : TopologicalSpace (adeleRing_hat K) := by
   sorry
 
-def adeleHatIso (ψ : adeleRing_hat K) : adeleRing K ≅ adeleRing_hat K where
+def adeleHatIso (ψ : adeleRing_hat K) : adeleRing K ≃+* adeleRing_hat K where
   hom := IsoFunAdele K ψ
   inv := sorry
   hom_inv_id := sorry

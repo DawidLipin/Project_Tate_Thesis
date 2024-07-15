@@ -264,13 +264,13 @@ def toContinuousAddMonoidHomEquiv : ContinuousAddChar A C ≃ (ContinuousAddMono
   right_inv _ := rfl
 
 def toContinuousAddMonoidHom (φ : ContinuousAddChar A C) : (ContinuousAddMonoidHom A (Additive C)) where
-  toFun := ⟨φ.toFun, φ.2⟩
-  continuous_toFun := f.continuous_toFun
+  toFun := toContinuousAddMonoidHomEquiv A C φ
+  continuous_toFun := φ.continuous_toFun
   map_zero' := φ.map_zero_one'
   map_add' := φ.map_add_mul'
 
-def compAddMonoidHom (φ : ContinuousAddChar B C) (f : A →+ B) : ContinuousAddChar A C :=
-  (toContinuousAddMonoidHomEquiv A C).symm (φ.toContinuousAddMonoidHom.comp f)
+def compAddMonoidHom (φ : ContinuousAddChar B C) (f : ContinuousAddMonoidHom A B) : ContinuousAddChar A C :=
+  (toContinuousAddMonoidHomEquiv A C).symm ((toContinuousAddMonoidHom B C φ).comp f)
 
 instance instCommGroup : CommGroup (ContinuousAddChar G F) :=
   { instCommMonoid G F with
