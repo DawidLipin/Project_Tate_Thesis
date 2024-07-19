@@ -7,9 +7,9 @@ open Pointwise Function AddChar
 variable (A B C D E F G H : Type*)
   [AddMonoid A] [AddMonoid B] [Monoid C] [Monoid D]
   [TopologicalSpace A] [TopologicalSpace B] [TopologicalSpace C] [TopologicalSpace D]
-  -- [AddMonoid E] [Monoid E] [TopologicalSpace E]
+  [AddMonoid E] [CommGroup F] [TopologicalSpace E]
   [CommGroup F] [TopologicalSpace F] [TopologicalGroup F]
-  [AddCommGroup G] [TopologicalSpace G]
+  [AddCommGroup G] [TopologicalSpace G] [TopologicalAddGroup G]
   [CommMonoid H] [TopologicalSpace H]
 
 
@@ -52,9 +52,8 @@ theorem toContinuousMap_injective : Injective (toContinuousMap : _ → C(A, C)) 
 def mk' (f : AddChar A C) (hf : Continuous f) : ContinuousAddChar A C :=
   { f with continuous_toFun := (hf : Continuous f.toFun)}
 
-
--- Need .prod in AddChar and .prodmap
-
+@[simp]
+lemma mk_apply (f : AddChar A C) (hf : Continuous f) : ContinuousAddChar.mk f hf a = f a := rfl
 
 /-- Product of two continuous homomorphisms on the same space. -/
 def prod (f : ContinuousAddChar A C) (g : ContinuousAddChar A D) :
@@ -82,22 +81,23 @@ def prod_map (f : ContinuousAddChar A C) (g : ContinuousAddChar B D) :
       simp only [Prod.fst_zero, Prod.snd_zero]
       cases' f with f hf
       cases' g with g hg
-      have h1 : f 0 = 1 := by exact map_zero_one f
-      have h2 : g 0 = 1 := by exact map_zero_one g
-      simp only [Prod.mk_eq_one]
-      exact ⟨h1, h2⟩
-    map_add_mul' :=
-      sorry
+      simp only [mk_apply, map_zero_one, Prod.mk_eq_one, and_self]
+    map_add_mul' := by
+      intro a b
+      cases' f with f hf
+      cases' g with g hg
+      simp only [mk_apply, Prod.mk_mul_mk, Prod.mk.injEq]
+      constructor
+      · exact map_add_mul f a.1 b.1
+      · exact map_add_mul g a.2 b.2
   }) (f.continuous_toFun.prod_map g.continuous_toFun)
-
-variable (A B C D E)
 
 /-- The trivial continuous homomorphism. -/
 def one : ContinuousAddChar A C :=
   mk' 1 continuous_const
 
 instance : Inhabited (ContinuousAddChar A C) :=
-  ⟨one A C⟩
+  ⟨one⟩
 
 -- Everything below is not true since we need f 0 = 1
 
@@ -147,24 +147,13 @@ def coprod (f : ContinuousAddChar A F) (g : ContinuousAddChar B F) :
         simp only [Prod.fst_zero, Prod.snd_zero]
         cases' f with f hf
         cases' g with g hg
-        have h1 : f 0 = 1 := AddChar.map_zero_one f
-        have h2 : g 0 = 1 := AddChar.map_zero_one g
-        have h3 : f 0 * g 0 = 1 := by simp only [map_zero_one, mul_one]
-        exact h3
+        simp only [mk_apply, map_zero_one, mul_one]
       map_add_mul' := by
         intro a b
         cases' f with f hf
         cases' g with g hg
-        simp only [Prod.fst_add, Prod.snd_add]
-        have h1 : f (a.1 + b.1) = f a.1 * f b.1 := AddChar.map_add_mul f a.1 b.1
-        have h2 : g (a.2 + b.2) = g a.2 * g b.2 := AddChar.map_add_mul g a.2 b.2
-        have h3 : f (a.1 + b.1) * g (a.2 + b.2) = f a.1 * f b.1 * (g a.2 * g b.2) := by simp only [h1, h2]
-        -- have h4 : f a.1 * f b.1 * (g a.2 * g b.2) = f a.1 * (g a.2 * f b.1) * g b.2 := by sorry
-        -- have h5 : f a.1 * (g a.2 * f b.1) * g b.2 = f a.1 * g a.2 * f b.1 * g b.2 := by sorry
-        -- have h6 : f a.1 * f b.1 * (g a.2 * g b.2) = f a.1 * g a.2 * f b.1 * g b.2 := by sorry
-        have h7 : f (a.1 + b.1) * g (a.2 + b.2) = f a.1 * g a.2 * f b.1 * g b.2 := sorry
-        -- exact h7 doesn't work?
-        sorry
+        simp only [Prod.fst_add, mk_apply, Prod.snd_add, mul_mul_mul_comm]
+        simp only [map_add_mul]
       continuous_toFun := by
         cases' f with f hf
         cases' g with g hg
@@ -205,7 +194,7 @@ instance instCommMonoid : CommMonoid (ContinuousAddChar A F) where
   }
   mul_comm f g := ext fun x => mul_comm (f x) (g x)
   mul_assoc f g h := ext fun x => mul_assoc (f x) (g x) (h x)
-  one := one A F
+  one := one
   one_mul f := ext fun x => one_mul (f x)
   mul_one f := ext fun x => mul_one (f x)
 
@@ -218,7 +207,7 @@ theorem inducing_toContinuousMap : Inducing (toContinuousMap : ContinuousAddChar
 
 theorem embedding_toContinuousMap :
     Embedding (toContinuousMap : ContinuousAddChar A C → C(A, C)) :=
-  ⟨inducing_toContinuousMap A C, toContinuousMap_injective⟩
+  ⟨inducing_toContinuousMap, toContinuousMap_injective⟩
 
 lemma range_toContinuousMap :
     Set.range (toContinuousMap : ContinuousAddChar A C → C(A, C)) =
@@ -229,7 +218,7 @@ lemma range_toContinuousMap :
 
 theorem closedEmbedding_toContinuousMap [ContinuousMul C] [T2Space C] :
     ClosedEmbedding (toContinuousMap : ContinuousAddChar A C → C(A, C)) where
-  toEmbedding := embedding_toContinuousMap A C
+  toEmbedding := embedding_toContinuousMap
   isClosed_range := by
     simp only [range_toContinuousMap, Set.setOf_and, Set.setOf_forall]
     refine .inter (isClosed_singleton.preimage (ContinuousMap.continuous_eval_const 0)) <|
@@ -239,7 +228,7 @@ theorem closedEmbedding_toContinuousMap [ContinuousMul C] [T2Space C] :
 
 
 instance [T2Space C] : T2Space (ContinuousAddChar A C) :=
-  (embedding_toContinuousMap A C).t2Space
+  (embedding_toContinuousMap).t2Space
 
 ----------------------------------------- Extra stuff
 
@@ -264,80 +253,102 @@ def toContinuousAddMonoidHomEquiv : ContinuousAddChar A C ≃ (ContinuousAddMono
   right_inv _ := rfl
 
 def toContinuousAddMonoidHom (φ : ContinuousAddChar A C) : (ContinuousAddMonoidHom A (Additive C)) where
-  toFun := toContinuousAddMonoidHomEquiv A C φ
+  toFun := toContinuousAddMonoidHomEquiv φ
   continuous_toFun := φ.continuous_toFun
   map_zero' := φ.map_zero_one'
   map_add' := φ.map_add_mul'
 
 def compAddMonoidHom (φ : ContinuousAddChar B C) (f : ContinuousAddMonoidHom A B) : ContinuousAddChar A C :=
-  (toContinuousAddMonoidHomEquiv A C).symm ((toContinuousAddMonoidHom B C φ).comp f)
+  (toContinuousAddMonoidHomEquiv).symm ((toContinuousAddMonoidHom φ).comp f)
+
+theorem exttest {f g : ContinuousAddChar A C} (h : ∀ x, f x = g x) : f = g :=
+  DFunLike.ext _ _ h
+
+lemma map_add_mul (ψ : ContinuousAddChar A C) (x y : A) : ψ (x + y) = ψ x * ψ y := ψ.map_add_mul' x y
 
 instance instCommGroup : CommGroup (ContinuousAddChar G F) :=
-  { instCommMonoid G F with
-    inv := fun ψ ↦ ⟨ψ.compAddMonoidHom negAddMonoidHom, ψ.2⟩
-    mul_left_inv := fun ψ ↦ by ext1 x; simp [negAddMonoidHom, ← map_add_mul]}
+  { instCommMonoid F with
+    inv := fun ψ ↦ (ψ.compAddMonoidHom (ContinuousAddMonoidHom.neg G))
+    mul_left_inv := by
+      intro ψ
+      apply ext
+      intro x
+      simp only
+      have h1 : (compAddMonoidHom ψ (ContinuousAddMonoidHom.neg G) x) * (ψ x) = (compAddMonoidHom ψ (ContinuousAddMonoidHom.neg G) * ψ) x := rfl
+      have h2 : (ContinuousAddMonoidHom.neg G) x = -x := rfl
+      have h3 : (compAddMonoidHom ψ (ContinuousAddMonoidHom.neg G) x) = ψ ((ContinuousAddMonoidHom.neg G) x) := rfl
+      rw [← h1, h3, h2]
+      simp only [← map_add_mul, add_left_neg]
+      have h4 :  ψ 0 = 1 := ψ.map_zero_one'
+      rw [h4]
+      rfl
+      }
 
-instance instCommGroup : CommGroup (ContinuousAddChar G F) := sorry
+@[simp] lemma inv_apply (ψ : ContinuousAddChar G F) (x : G) : ψ⁻¹ x = ψ (-x) := rfl
+
+lemma map_neg_inv (ψ : ContinuousAddChar G F) (a : G) : ψ (-a) = (ψ a)⁻¹ := by
+  apply eq_inv_of_mul_eq_one_left
+  simp only [← map_add_mul, add_left_neg, map_zero_one]
+  exact ψ.map_zero_one'
+
+lemma inv_apply' (ψ : ContinuousAddChar G F) (x : G) : ψ⁻¹ x = (ψ x)⁻¹ := by rw [inv_apply, map_neg_inv]
 
 -----------------------------------------
 
+-- Needed if I go with the other option below
+-- ContinuousAddMonoidHom.neg is continuous so should follow from that?
+instance : ContinuousInv (ContinuousAddChar G F) where
+  continuous_inv := by
+    sorry
+
 instance : TopologicalGroup (ContinuousAddChar G F) :=
-  let hi := inducing_toContinuousMap A F
+  let hi := inducing_toContinuousMap
   let hc := hi.continuous
   { continuous_mul := hi.continuous_iff.mpr (continuous_mul.comp (Continuous.prod_map hc hc))
-    continuous_inv := hi.continuous_iff.mpr (continuous_inv.comp hc) }
+    -- continuous_inv := hi.continuous_iff.mpr (continuous_inv.comp hc)}
+    continuous_inv := hi.continuous_iff.mpr (Continuous.comp hc continuous_inv)}
 
--- @[to_additive]
--- theorem continuous_of_continuous_uncurry {A : Type*} [TopologicalSpace A]
---     (f : A → ContinuousAddChar B C) (h : Continuous (Function.uncurry fun x y => f x y)) :
---     Continuous f :=
---   (inducing_toContinuousMap _ _).continuous_iff.mpr
---     (ContinuousMap.continuous_of_continuous_uncurry _ h)
--- #align continuous_monoid_hom.continuous_of_continuous_uncurry ContinuousAddChar.continuous_of_continuous_uncurry
--- #align continuous_add_monoid_hom.continuous_of_continuous_uncurry ContinuousAddChar.continuous_of_continuous_uncurry
+theorem continuous_of_continuous_uncurry {A : Type*} [TopologicalSpace A]
+    (f : A → ContinuousAddChar B C) (h : Continuous (Function.uncurry fun x y => f x y)) :
+    Continuous f :=
+  (inducing_toContinuousMap).continuous_iff.mpr
+    (ContinuousMap.continuous_of_continuous_uncurry _ h)
 
--- @[to_additive]
+
+--
+-- I don't think things below are true, because we can't compose AddChars
+--
+
+
 -- theorem continuous_comp [LocallyCompactSpace B] :
 --     Continuous fun f : ContinuousAddChar A B × ContinuousAddChar B C => f.2.comp f.1 :=
 --   (inducing_toContinuousMap A C).continuous_iff.2 <|
 --     ContinuousMap.continuous_comp'.comp
 --       ((inducing_toContinuousMap A B).prod_map (inducing_toContinuousMap B C)).continuous
--- #align continuous_monoid_hom.continuous_comp ContinuousAddChar.continuous_comp
--- #align continuous_add_monoid_hom.continuous_comp ContinuousAddChar.continuous_comp
 
--- @[to_additive]
 -- theorem continuous_comp_left (f : ContinuousAddChar A B) :
 --     Continuous fun g : ContinuousAddChar B C => g.comp f :=
 --   (inducing_toContinuousMap A C).continuous_iff.2 <|
 --     f.toContinuousMap.continuous_comp_left.comp (inducing_toContinuousMap B C).continuous
--- #align continuous_monoid_hom.continuous_comp_left ContinuousAddChar.continuous_comp_left
--- #align continuous_add_monoid_hom.continuous_comp_left ContinuousAddChar.continuous_comp_left
 
--- @[to_additive]
 -- theorem continuous_comp_right (f : ContinuousAddChar B C) :
 --     Continuous fun g : ContinuousAddChar A B => f.comp g :=
 --   (inducing_toContinuousMap A C).continuous_iff.2 <|
 --     f.toContinuousMap.continuous_comp.comp (inducing_toContinuousMap A B).continuous
--- #align continuous_monoid_hom.continuous_comp_right ContinuousAddChar.continuous_comp_right
--- #align continuous_add_monoid_hom.continuous_comp_right ContinuousAddChar.continuous_comp_right
 
 -- variable (E)
 
 -- /-- `ContinuousAddChar _ f` is a functor. -/
--- @[to_additive "`ContinuousAddChar _ f` is a functor."]
 -- def compLeft (f : ContinuousAddChar A B) :
 --     ContinuousAddChar (ContinuousAddChar B E) (ContinuousAddChar A E) where
 --   toFun g := g.comp f
 --   map_one' := rfl
 --   map_mul' _g _h := rfl
 --   continuous_toFun := f.continuous_comp_left
--- #align continuous_monoid_hom.comp_left ContinuousAddChar.compLeft
--- #align continuous_add_monoid_hom.comp_left ContinuousAddChar.compLeft
 
 -- variable (A) {E}
 
 -- /-- `ContinuousAddChar f _` is a functor. -/
--- @[to_additive "`ContinuousAddChar f _` is a functor."]
 -- def compRight {B : Type*} [CommGroup B] [TopologicalSpace B] [TopologicalGroup B]
 --     (f : ContinuousAddChar B E) :
 --     ContinuousAddChar (ContinuousAddChar A B) (ContinuousAddChar A E) where
@@ -345,7 +356,5 @@ instance : TopologicalGroup (ContinuousAddChar G F) :=
 --   map_one' := ext fun _a => map_one f
 --   map_mul' g h := ext fun a => map_mul f (g a) (h a)
 --   continuous_toFun := f.continuous_comp_right
--- #align continuous_monoid_hom.comp_right ContinuousAddChar.compRight
--- #align continuous_add_monoid_hom.comp_right ContinuousAddChar.compRight
 
--- end ContinuousAddChar
+end ContinuousAddChar
