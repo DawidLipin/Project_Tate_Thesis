@@ -1,10 +1,11 @@
-import Mathlib
 import AdeleRingLocallyCompact.RingTheory.DedekindDomain.FiniteSAdeleRing
 import AdeleRingLocallyCompact.NumberTheory.NumberField.InfiniteAdeleRing
 import AdeleRingLocallyCompact.NumberTheory.NumberField.AdeleRing
 import Mathlib.Analysis.Fourier.FourierTransform
 import Mathlib.RingTheory.Valuation.Basic
 import Mathlib.RingTheory.DedekindDomain.AdicValuation
+import Mathlib.NumberTheory.NumberField.Basic
+import Mathlib.RingTheory.Ideal.Quotient
 
 noncomputable section
 
@@ -93,6 +94,8 @@ def unit_prod (A : Type) [CommRing A]
 
 open InfiniteAdeleRing
 
+open BigOperators
+
 open Classical in
 def infiniteNorm (x : infiniteAdeleRing K) : ℝ := ∏ v, ‖x v‖ ^ (if v.IsReal then 1 else 2)
 
@@ -138,25 +141,28 @@ def Zm0.toReal (r : ℝ) (h1: 0 < r) : ℤₘ₀ →* ℝ where
         norm_cast
 
 
-def NP (P : Ideal (𝓞 K)): ℕ :=
-  Nat.card ((𝓞 K) ⧸ P)
+instance : HasQuotient (𝓞 K) (HeightOneSpectrum (𝓞 K)) where
+  quotient' := fun h ↦ 𝓞 K ⧸ h.asIdeal
+
+def NP (I : HeightOneSpectrum (𝓞 K)): ℕ :=
+  Nat.card ((𝓞 K) ⧸ I)
   -- Nat.card (HasQuotient (𝓞 K) P)
 
-lemma NPNeZero (P : Ideal (𝓞 K)): (NP K P) ≠ 0 := by
+lemma NPNeZero (I : HeightOneSpectrum (𝓞 K)): (NP K I) ≠ 0 := by
   rw [NP]
-
+  -- exact Nat.card_pos_iff
   sorry
 
-lemma NPGeZero (P : Ideal (𝓞 K)): 0 < (NP K P) := by
-  exact (Nat.pos_of_ne_zero (NPNeZero K P))
+lemma NPGeZero (I : HeightOneSpectrum (𝓞 K)): (0 : ℝ) < (NP K I) := by
+  exact Nat.cast_pos.mpr (Nat.pos_of_ne_zero (NPNeZero K I))
+
+def finiteNorm (x : finiteAdeleRing (𝓞 K) K): ℝ := ∏ᶠ (v : HeightOneSpectrum (𝓞 K)), (Zm0.toReal (NP K v) (NPGeZero K v) (Valued.v (x.1 v)))
+
+def GlobalNorm (x : (adeleRing K)ˣ): ℝ := (finiteNorm K (x.1.2)) * (infiniteNorm K x.1.1)
 
 
-def finiteLocalNorm (x : finiteAdeleRing (𝓞 K) K) : ℝ := ∏ᶠ v, (Zm0.toReal  (Valuation (x v)))
-
-
-
-
-
+-- This is not well defined, but keeping in case it is useful
+def GlobalNormAdele (x : (adeleRing K)): ℝ := (finiteNorm K x.2) * (infiniteNorm K x.1)
 
 
 
