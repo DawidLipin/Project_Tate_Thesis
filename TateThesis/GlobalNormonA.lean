@@ -145,18 +145,17 @@ instance : HasQuotient (𝓞 K) (HeightOneSpectrum (𝓞 K)) where
   quotient' := fun h ↦ 𝓞 K ⧸ h.asIdeal
 
 def NP (I : HeightOneSpectrum (𝓞 K)): ℕ :=
-  Nat.card ((𝓞 K) ⧸ I)
-  -- Nat.card (HasQuotient (𝓞 K) P)
+  Ideal.absNorm (I.asIdeal)
 
 lemma NPNeZero (I : HeightOneSpectrum (𝓞 K)): (NP K I) ≠ 0 := by
-  rw [NP]
-  -- exact Nat.card_pos_iff
-  sorry
+  rw [NP, ne_eq, Ideal.absNorm_eq_zero_iff]
+  exact I.ne_bot
 
 lemma NPGeZero (I : HeightOneSpectrum (𝓞 K)): (0 : ℝ) < (NP K I) := by
   exact Nat.cast_pos.mpr (Nat.pos_of_ne_zero (NPNeZero K I))
 
-def finiteNorm (x : finiteAdeleRing (𝓞 K) K): ℝ := ∏ᶠ (v : HeightOneSpectrum (𝓞 K)), (Zm0.toReal (NP K v) (NPGeZero K v) (Valued.v (x.1 v)))
+def finiteNorm (x : finiteAdeleRing (𝓞 K) K): ℝ :=
+    ∏ᶠ (v : HeightOneSpectrum (𝓞 K)), (Zm0.toReal (NP K v) (NPGeZero K v) (Valued.v (x.1 v)))
 
 def GlobalNorm (x : (adeleRing K)ˣ): ℝ := (finiteNorm K (x.1.2)) * (infiniteNorm K x.1.1)
 
@@ -167,4 +166,4 @@ def GlobalNormAdele (x : (adeleRing K)): ℝ := (finiteNorm K x.2) * (infiniteNo
 
 
 
-#lint
+-- #lint

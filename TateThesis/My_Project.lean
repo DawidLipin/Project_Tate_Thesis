@@ -1,8 +1,8 @@
-import Mathlib
 import AdeleRingLocallyCompact.RingTheory.DedekindDomain.FiniteSAdeleRing
 import AdeleRingLocallyCompact.NumberTheory.NumberField.InfiniteAdeleRing
 import AdeleRingLocallyCompact.NumberTheory.NumberField.AdeleRing
 import Mathlib.Analysis.Fourier.FourierTransform
+import TateThesis.ContinuousAddChar
 
 noncomputable section
 
@@ -39,8 +39,8 @@ def f_hat
     (K : Type*) [Field K] [NumberField K]
     {AK : Type*} [TopologicalSpace AK] [MeasurableSpace AK]
     [CommRing AK] (μ : MeasureTheory.Measure AK) [μ.IsAddHaarMeasure]
-    (f : AK → ℂ) (w : AK): (AddChar AK circle) → ℂ :=
-  fun e => (Fourier.fourierIntegral e μ f w)
+    (f : AK → ℂ) (w : AK): (ContinuousAddChar AK circle) → ℂ :=
+  fun e => (Fourier.fourierIntegral e.1 μ f w)
 
 
 -- Ideles
@@ -49,16 +49,16 @@ def f_hat
 
 -- Condition 1
 
-instance topchar : TopologicalSpace (AddChar (adeleRing K) circle) := by
+instance topchar : TopologicalSpace (ContinuousAddChar (adeleRing K) circle) := by
   sorry
 
-instance messpc_hat :  MeasurableSpace (AddChar (adeleRing K) circle) :=
-  by exact borel (AddChar (adeleRing K) circle)
+instance messpc_hat :  MeasurableSpace (ContinuousAddChar (adeleRing K) circle) :=
+  by exact borel (ContinuousAddChar (adeleRing K) circle)
 
 def Cond1 (f : (adeleRing K) → ℂ)
     (μ : MeasureTheory.Measure (adeleRing K))
     [μ.IsAddHaarMeasure] (w : (adeleRing K))
-    (μ_hat : MeasureTheory.Measure (AddChar (adeleRing K) circle))
+    (μ_hat : MeasureTheory.Measure (ContinuousAddChar (adeleRing K) circle))
     [μ_hat.IsHaarMeasure] :=
   (MeasureTheory.Memℒp f 1 μ) ∧ (Continuous f) ∧
   ((MeasureTheory.Memℒp (f_hat K μ f w) 1 μ_hat) ∧ (Continuous (f_hat K μ f w)))
