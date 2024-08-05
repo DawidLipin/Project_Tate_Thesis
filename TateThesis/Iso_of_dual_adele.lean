@@ -75,20 +75,23 @@ lemma mul_cont (a : v2.adicCompletion K):
     Continuous (AddChar.mulShift ψ.toAddChar a) := by
   exact (ψ.2).comp (continuous_mul_left a)
 
-
 def ψa: (v2.adicCompletion K) → (ContinuousAddChar (v2.adicCompletion K) circle) :=
   fun a => ⟨AddChar.mulShift ψ.toAddChar a, (mul_cont K v2 ψ a)⟩
 
-lemma ψa_triv_eq_ψ_triv (a : v2.adicCompletion K): (ψa K v2 ψ a) = 1 ↔ ψ = 1 := by
-  constructor
-  · intro h1
+lemma ψa_triv_eq_ψ_triv (a : v2.adicCompletion K) (ha: a ≠ 0): (ψa K v2 ψ a) = 1 ↔ ψ = 1 := by
+  constructor <;> intro h1 <;> rw [← ContinuousAddChar.ext'] at * <;> intro x
+  <;> simp only [ContinuousAddChar.one_apply] at *
+  · specialize h1 (a⁻¹*x)
     unfold ψa at h1
-    have ht: Continuous (AddChar.mulShift ψ.toAddChar a) := sorry
-    -- simp only [ContinuousAddChar.mk_apply (AddChar.mulShift ψ.toAddChar a) ht] at h1
-    sorry
-  · intro h1
-    -- simp only [ContinuousAddChar.mk_apply]
-    sorry
+    rw [ContinuousAddChar.mk_apply, AddChar.mulShift_apply] at h1
+    -- simp at h1
+    -- weird bug with simp?
+    rw [← mul_assoc a (a⁻¹) x, mul_inv_cancel ha, one_mul] at h1
+    exact h1
+  · specialize h1 (a*x)
+    unfold ψa
+    rw [ContinuousAddChar.mk_apply, AddChar.mulShift_apply]
+    exact h1
 
 lemma ψ_set_triv (a : v2.adicCompletion K) (hψ : ψ ≠ 1):
     {φ | ∀ (x : v2.adicCompletion K), (ψa K v2 ψ a) x = 1} = {1} := by
@@ -102,8 +105,33 @@ lemma ψ_set_triv (a : v2.adicCompletion K) (hψ : ψ ≠ 1):
     by_contra hcontr
     -- rw [ψa_triv_eq_ψ_triv K v2 _ a] at hf
     sorry
-  exact Set.Subset.antisymm h2 h1
+  -- exact Set.Subset.antisymm h2 h1
   sorry
+
+
+def Λ: (Set (v2.adicCompletion K)) → (Set (ContinuousAddChar (v2.adicCompletion K) circle)) :=
+  fun X => {φ : (ContinuousAddChar (v2.adicCompletion K) circle) | ∀ x ∈ X, φ x = 1}
+
+lemma test (a : v2.adicCompletion K): ∀ X : Set (v2.adicCompletion K), X={0} ↔ (Λ K v2) X = ⊤ := by
+  intro X
+  constructor
+  · intro h1
+    rw [h1]
+    unfold Λ
+
+    sorry
+  · intro h1
+    unfold Λ at h1
+    by_contra h2
+    --
+    have h3: ∃ x, x ∈ X ∧ x ≠ 0 := by
+      sorry
+    cases' h3 with x hx1
+    cases' hx1 with hx1 hx2
+    --
+
+    sorry
+
 
 
 def isocs: Set (v2.adicCompletion K)  → Set (ContinuousAddChar (v2.adicCompletion K) circle) :=

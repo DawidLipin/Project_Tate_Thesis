@@ -18,14 +18,12 @@ theorem locallyCompactSpace : LocallyCompactSpace (adeleRing K) := by
   exact Prod.locallyCompactSpace _ _
 
 
-instance topspc_hat (G : Type) [Group G] [AddGroup G] [TopologicalSpace G]
-    [LocallyCompactSpace G] [T2Space G] [MeasurableSpace G]
-    [CommRing G]:  TopologicalSpace (AddChar G circle) where
-  IsOpen U := ∀ ψ ∈ U, ∃ K : Set G, ∃ V : (nhds (1 : circle)), IsCompact K → U ∈ {χ ∈ AddChar G circle | (χ K) ⊆ V}
-    sorry
-  isOpen_univ :=
-    sorry
-  isOpen_inter :=
-    sorry
-  isOpen_sUnion :=
-    sorry
+instance adeleRingLocallyCompact : LocallyCompactSpace (adeleRing K) := by
+  exact locallyCompactSpace K
+
+instance quotientAdeleK : HasQuotient (adeleRing K)ˣ Kˣ := by
+  sorry
+
+-- How to define the quotient
+def ζ (f : (adeleRing K) → ℂ) (c : ((adeleRing K)ˣ ⧸ Kˣ)) : (AddChar (adeleRing K) circle) → ℂ :=
+  fun e => (Fourier.fourierIntegral e f w)

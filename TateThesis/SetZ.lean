@@ -3,6 +3,7 @@ import AdeleRingLocallyCompact.NumberTheory.NumberField.InfiniteAdeleRing
 import AdeleRingLocallyCompact.NumberTheory.NumberField.AdeleRing
 import Mathlib.Analysis.Fourier.FourierTransform
 import TateThesis.ContinuousAddChar
+import TateThesis.GlobalNormonA
 
 noncomputable section
 
@@ -13,15 +14,6 @@ open MeasureTheory.Measure
 
 variable (K : Type*) [Field K] [NumberField K]
 
-theorem locallyCompactSpace : LocallyCompactSpace (adeleRing K) := by
-  haveI := InfiniteAdeleRing.locallyCompactSpace K
-  haveI := FiniteAdeleRing.locallyCompactSpace (ringOfIntegers K) K
-  exact Prod.locallyCompactSpace _ _
-
-instance adeleRingLocallyCompact : LocallyCompactSpace (adeleRing K) := by
-  exact locallyCompactSpace K
-
-
 ---------------------------------------------
 -- Def f_hat
 
@@ -30,7 +22,7 @@ instance messpc :  MeasurableSpace (adeleRing K) :=
 
 -- def f_hat
 --     (K : Type*) [Field K] [NumberField K]
---     (μ : MeasureTheory.Measure (adeleRing K)) [μ.IsHaarMeasure]
+--     (μ : MeasureTheory.Measure (adeleRing K)) [μ.IsAddHaarMeasure]
 --     (f : (adeleRing K) → ℂ) (w : (adeleRing K)): (AddChar (adeleRing K) circle) → ℂ :=
 --   fun e => (Fourier.fourierIntegral e μ f w)
 
@@ -41,22 +33,66 @@ def f_hat
     (f : AK → ℂ) (w : AK): (ContinuousAddChar AK circle) → ℂ :=
   fun e => (Fourier.fourierIntegral e.1 μ f w)
 
+  -- def f_hat2
+  --   (K : Type*) [Field K] [NumberField K]
+  --   (μ : MeasureTheory.Measure (AddUnits (adeleRing K))) [μ.IsAddHaarMeasure]
+  --   (f : (AddUnits (adeleRing K)) → ℂ) (w : (AddUnits (adeleRing K))): (AddChar (AddUnits (adeleRing K)) circle) → ℂ :=
+  -- fun e => (Fourier.fourierIntegral e μ f w)
 
-
-
----------------------------------------------
--- Cond 1
-
-def adeleHatIso: (adeleRing K) ≃* (ContinuousAddChar (adeleRing K) circle) := sorry
-
-variable (μ : MeasureTheory.Measure (adeleRing K)) [μ.IsAddHaarMeasure] (f : (adeleRing K) → ℂ)
 
 instance messpc_hat :  MeasurableSpace (ContinuousAddChar (adeleRing K) circle) :=
   by exact borel (ContinuousAddChar (adeleRing K) circle)
 
---
--- Do I need to define μ_hat and prove it's a measure and all that based on μ even when I have the isomorphism?
---
+-- instance messpc_hat2 :  MeasurableSpace (ContinuousAddChar (AddUnits (adeleRing K)) circle) :=
+--   by exact borel (ContinuousAddChar (AddUnits (adeleRing K)) circle)
+
+def globalEmbedding : K →+* adeleRing K :=
+  RingHom.prod (InfiniteAdeleRing.globalEmbedding K) (FiniteAdeleRing.globalEmbedding _ _)
+
+instance HAddAK : HAdd (adeleRing K) K (adeleRing K) := by
+  --use def above
+  sorry
+
+def adeleHatIso: (ContinuousAddChar (adeleRing K) circle) ≃* (adeleRing K) := sorry
+
+def adeleHatIsoInv: (adeleRing K) ≃* (ContinuousAddChar (adeleRing K) circle) := sorry
+
+--------------------------------------------------
+-- Set Z as a structure
+
+structure ZSet (f : (adeleRing K) → ℂ)
+    (μ : MeasureTheory.Measure (adeleRing K))
+    [μ.IsAddHaarMeasure]
+    (μ_hat : MeasureTheory.Measure (ContinuousAddChar (adeleRing K) circle))
+    [μ_hat.IsHaarMeasure] where
+  --- Condition 1
+  fLp : MeasureTheory.Memℒp f 1 μ
+  fCont : Continuous f
+  fHatLp : MeasureTheory.Memℒp (f_hat K μ f 1) 1 μ_hat
+  fHatCont : Continuous (f_hat K μ f 1)
+  -- Condition 2
+  sumAbs : ∀ (y : (adeleRing K)ˣ), Summable (fun (i : K) => (fun (x : (adeleRing K)) =>
+    Complex.abs (f (y • (x + i)))))
+  sumAbsHat : ∀ (y : (adeleRing K)ˣ), Summable fun (i : K) =>
+    (fun (x : (ContinuousAddChar (adeleRing K) circle)) =>
+    Complex.abs ((f_hat K μ f w) (adeleHatIsoInv K (y • ((adeleHatIso K x) + i)))))
+  -- sumLoc :
+  -- sumLocHat :
+
+  -- Condition 3
+  UnitgLp : let g := fun (x : (AddUnits (adeleRing K))) => ((f (x)) * (Complex.cpow (GlobalNormAdele K x) σ))
+    MeasureTheory.Memℒp g 1 μ -- why does this work below but not here?
+  UnitsgHatLp : let g_hat := fun (x : (ContinuousAddChar (adeleRing K) circle)ˣ) => ((f_hat K μ f 1) x) * (Complex.cpow (GlobalNormAdele K (adeleHatIso K x)) σ)
+    MeasureTheory.Memℒp g_hat 1 μ_hat
+
+
+
+
+------------------- Old Versions --------------------------------------------
+
+
+---------------------------------------------
+-- Cond 1
 
 def Cond1 (f : (adeleRing K) → ℂ)
     (μ : MeasureTheory.Measure (adeleRing K))
@@ -89,9 +125,6 @@ instance smul_adele : SMul K (adeleRing K) := by
 
 theorem fund_dom :  MeasureTheory.IsFundamentalDomain K D μ := by
   sorry
-
-def globalEmbedding : K →+* adeleRing K :=
-  RingHom.prod (InfiniteAdeleRing.globalEmbedding K) (FiniteAdeleRing.globalEmbedding _ _)
 
 -- You can replace those 2 instances by getting ring hom between adeleRing K and Pntryagin dual and (AddChar...)
 instance test : HAdd (ContinuousAddChar (adeleRing K) circle) K (ContinuousAddChar (adeleRing K) circle) := by
@@ -154,69 +187,19 @@ def Cond2_b (f : (adeleRing K) → ℂ) (μ : MeasureTheory.Measure (adeleRing K
 
 
 ---------------------------------------------
--- Cond 2
+-- Cond 3
 
--- !!!!!!!!
--- Remove |x| below and identify (adeleRing K)ˣ with (adeleRing K) to make this work
--- !!!!!!!!
+-- instance messpc_hat2 :  MeasurableSpace (ContinuousAddChar (AddUnits (adeleRing K)) circle) :=
+--   by exact borel (ContinuousAddChar (AddUnits (adeleRing K)) circle)
 
--- instance fix_later1 : Lattice (adeleRing K)ˣ := by
---   sorry
--- instance fix_later2 : HPow ℂ ℝ ℂ := by
---   sorry
--- instance fix_later3 : AddGroup (adeleRing K)ˣ := by
---   sorry
--- instance fix_later4 : HPow (adeleRing K)ˣ ℝ ℝ := by
---   sorry
--- instance fix_later5 : Lattice (AddChar (adeleRing K) circle)ˣ := by
---   sorry
--- instance fix_later6 : AddGroup (AddChar (adeleRing K) circle)ˣ := by
---   sorry
--- instance fix_later7 : HPow (AddChar (adeleRing K) circle)ˣ ℝ ℝ := by
---   sorry
--- instance fix_later8 : CommRing (adeleRing K)ˣ := by
---   sorry
+-- def adeleHatIso: (ContinuousAddChar (adeleRing K) circle) ≃* (adeleRing K) := sorry
 
--- How is this an issue? Isn't this already defined in lean?
-instance CmulR : HMul ℂ ℝ ℂ := by
-  sorry
-
-
-
-def Cond3 (f : (adeleRing K)ˣ → ℂ) (μ : MeasureTheory.Measure (adeleRing K)ˣ)
-    [μ.IsHaarMeasure] (w : (adeleRing K)ˣ)
-    (μ_hat : MeasureTheory.Measure (ContinuousAddChar (adeleRing K)ˣ circle))
-    [μ_hat.IsAddHaarMeasure] (y : (adeleRing K)ˣ) (σ : ℝ) :=
-  -- Change |x| below once you define it properly as on page 65
-  let g := fun x => ((f (x)) * (|x|^σ))
-  let g_hat := fun x => ((f_hat K μ g w) (x)) * (|x|^σ)
+def Cond3 (f : (adeleRing K) → ℂ) (μ : MeasureTheory.Measure (adeleRing K))
+    [μ.IsAddHaarMeasure]
+    (μ_hat : MeasureTheory.Measure (ContinuousAddChar (adeleRing K) circle))
+    [μ_hat.IsHaarMeasure] (σ : ℝ) (hσ: σ > 1) :=
+  let g := fun (x : (AddUnits (adeleRing K))) => ((f (x)) * (Complex.cpow (GlobalNormAdele K x) σ))
+  let g_hat := fun (x : (ContinuousAddChar (adeleRing K) circle)ˣ) => ((f_hat K μ f 1) x) * (Complex.cpow (GlobalNormAdele K (adeleHatIso K x)) σ)
   (MeasureTheory.Memℒp g 1 μ) ∧ (MeasureTheory.Memℒp g_hat 1 μ_hat)
-
-open MeasureTheory Filter
-
-local notation "𝕊" => circle
-
-variable {𝕜 : Type*} [CommRing 𝕜] {V : Type*} [AddCommGroup V] [Module 𝕜 V] [MeasurableSpace V]
-  {W : Type*} [AddCommGroup W] [Module 𝕜 W]
-  {E F G : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [NormedAddCommGroup F] [NormedSpace ℂ F]
-  [NormedAddCommGroup G] [NormedSpace ℂ G]
-
--- def fourierIntegral2 (e : AddChar 𝕜 𝕊) (μ : Measure 𝕜) (f : 𝕜 → E) (w : 𝕜) : E :=
---   VectorFourier.fourierIntegral e μ (LinearMap.mul 𝕜 𝕜) f w
-
-  def fourierIntegral2 (e : AddChar 𝕜 𝕊) (μ : Measure V) (L : V →ₗ[𝕜] W →ₗ[𝕜] 𝕜) (f : V → E)
-    (w : W) : E :=
-  ∫ v, e (-L v w) • f v ∂μ
-
-variable [NormedAddCommGroup E] [NormedSpace ℝ E] [hE : CompleteSpace E] [NontriviallyNormedField 𝕜]
-  [NormedSpace 𝕜 E] [SMulCommClass ℝ 𝕜 E] [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F]
-  {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
-
-section
-
-open scoped Classical
-
-irreducible_def integral2 {_ : MeasurableSpace α} (μ : Measure α) (f : α → G) : G :=
-  if _ : CompleteSpace G then
-    if hf : Integrable f μ then L1.integral (hf.toL1 f) else 0
-  else 0
+  -- Why is this an issue for μ_hat but not μ?
+  -- This is slightly cheated. Is that going to be an issue?

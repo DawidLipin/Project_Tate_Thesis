@@ -159,6 +159,8 @@ def finiteNorm (x : finiteAdeleRing (𝓞 K) K): ℝ :=
 
 def GlobalNorm (x : (adeleRing K)ˣ): ℝ := (finiteNorm K (x.1.2)) * (infiniteNorm K x.1.1)
 
+def GlobalNormAdd (x : (AddUnits (adeleRing K))): ℝ := (finiteNorm K (x.1.2)) * (infiniteNorm K x.1.1)
+
 
 -- This is not well defined, but keeping in case it is useful
 def GlobalNormAdele (x : (adeleRing K)): ℝ := (finiteNorm K x.2) * (infiniteNorm K x.1)

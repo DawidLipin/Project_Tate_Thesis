@@ -42,6 +42,12 @@ instance funLike : FunLike (ContinuousAddChar A C) A C where
 theorem ext {f g : ContinuousAddChar A C} (h : ∀ x, f x = g x) : f = g :=
   DFunLike.ext _ _ h
 
+@[simp]
+theorem ext' {f g : ContinuousAddChar A C}: (∀ x, f x = g x) ↔ f = g := by
+  constructor
+  · exact ext
+  · intro h1 x
+    exact congrFun (congrArg DFunLike.coe h1) x
 
 def toContinuousMap (f : ContinuousAddChar A C) : C(A, C) :=
   { f with }
@@ -96,48 +102,12 @@ def prod_map (f : ContinuousAddChar A C) (g : ContinuousAddChar B D) :
 def one : ContinuousAddChar A C :=
   mk' 1 continuous_const
 
+instance instOne : One (ContinuousAddChar A C) := ⟨1, continuous_const⟩
+
+@[simp] lemma one_apply (a : A) : (1 : ContinuousAddChar A C) a = 1 := rfl
+
 instance : Inhabited (ContinuousAddChar A C) :=
   ⟨one⟩
-
--- Everything below is not true since we need f 0 = 1
-
--- /-- The identity continuous homomorphism. -/
--- def id [Monoid A] : ContinuousAddChar A A :=
---   mk' (AddChar.id A) continuous_id
-
--- /-- The continuous homomorphism given by projection onto the first factor. -/
--- def fst : ContinuousAddChar (A × B) A :=
---   mk' (AddChar.fst A B) continuous_fst
-
--- /-- The continuous homomorphism given by projection onto the second factor. -/
--- def snd : ContinuousAddChar (A × B) B :=
---   mk' (AddChar.snd A B) continuous_snd
-
--- /-- The continuous homomorphism given by inclusion of the first factor. -/
--- def inl : ContinuousAddChar A (A × B) :=
---   prod (id A) (one A B)
-
--- /-- The continuous homomorphism given by inclusion of the second factor. -/
--- def inr : ContinuousAddChar B (A × B) :=
---   prod (one B A) (id B)
-
--- /-- The continuous homomorphism given by the diagonal embedding. -/
--- def diag : ContinuousAddChar A (A × A) :=
---   prod (id A) (id A)
-
--- /-- The continuous homomorphism given by swapping components. -/
--- def swap : ContinuousAddChar (A × B) (B × A) :=
---   prod (snd A B) (fst A B)
-
--- /-- The continuous homomorphism given by multiplication. -/
--- def mul : ContinuousAddChar (F × F) F :=
---   mk' mulAddChar continuous_mul
-
--- /-- The continuous homomorphism given by inversion. -/
--- def inv : ContinuousAddChar E E :=
---   mk' invAddChar continuous_inv
-
--- variable {A B C D E}
 
 /-- Coproduct of two continuous homomorphisms to the same space. -/
 def coprod (f : ContinuousAddChar A F) (g : ContinuousAddChar B F) :
@@ -283,78 +253,39 @@ instance instCommGroup : CommGroup (ContinuousAddChar G F) :=
       rw [h4]
       rfl
       }
+@[simp]
+lemma inv_apply (ψ : ContinuousAddChar G F) (x : G) : ψ⁻¹ x = ψ (-x) := rfl
 
-@[simp] lemma inv_apply (ψ : ContinuousAddChar G F) (x : G) : ψ⁻¹ x = ψ (-x) := rfl
-
+@[simp]
 lemma map_neg_inv (ψ : ContinuousAddChar G F) (a : G) : ψ (-a) = (ψ a)⁻¹ := by
   apply eq_inv_of_mul_eq_one_left
   simp only [← map_add_mul, add_left_neg, map_zero_one]
   exact ψ.map_zero_one'
 
-lemma inv_apply' (ψ : ContinuousAddChar G F) (x : G) : ψ⁻¹ x = (ψ x)⁻¹ := by rw [inv_apply, map_neg_inv]
+lemma inv_apply' (ψ : ContinuousAddChar G F) (x : G) : ψ⁻¹ x = (ψ x)⁻¹ := by simp
 
 -----------------------------------------
 
--- Needed if I go with the other option below
--- ContinuousAddMonoidHom.neg is continuous so should follow from that?
 instance : ContinuousInv (ContinuousAddChar G F) where
   continuous_inv := by
-    sorry
+    have hi : Inducing (toContinuousMap : ContinuousAddChar G F → C(G, F)):= inducing_toContinuousMap
+    rw [hi.continuous_iff]
+    have foo := (continuous_inv.comp hi.continuous)
+    convert foo
+    ext φ g
+    simp only [comp_apply, ContinuousMap.inv_apply]
+    exact inv_apply' F G φ g
 
 instance : TopologicalGroup (ContinuousAddChar G F) :=
-  let hi := inducing_toContinuousMap
+  have hi := inducing_toContinuousMap
   let hc := hi.continuous
   { continuous_mul := hi.continuous_iff.mpr (continuous_mul.comp (Continuous.prod_map hc hc))
-    -- continuous_inv := hi.continuous_iff.mpr (continuous_inv.comp hc)}
-    continuous_inv := hi.continuous_iff.mpr (Continuous.comp hc continuous_inv)}
+  }
 
 theorem continuous_of_continuous_uncurry {A : Type*} [TopologicalSpace A]
     (f : A → ContinuousAddChar B C) (h : Continuous (Function.uncurry fun x y => f x y)) :
     Continuous f :=
   (inducing_toContinuousMap).continuous_iff.mpr
     (ContinuousMap.continuous_of_continuous_uncurry _ h)
-
-
---
--- I don't think things below are true, because we can't compose AddChars
---
-
-
--- theorem continuous_comp [LocallyCompactSpace B] :
---     Continuous fun f : ContinuousAddChar A B × ContinuousAddChar B C => f.2.comp f.1 :=
---   (inducing_toContinuousMap A C).continuous_iff.2 <|
---     ContinuousMap.continuous_comp'.comp
---       ((inducing_toContinuousMap A B).prod_map (inducing_toContinuousMap B C)).continuous
-
--- theorem continuous_comp_left (f : ContinuousAddChar A B) :
---     Continuous fun g : ContinuousAddChar B C => g.comp f :=
---   (inducing_toContinuousMap A C).continuous_iff.2 <|
---     f.toContinuousMap.continuous_comp_left.comp (inducing_toContinuousMap B C).continuous
-
--- theorem continuous_comp_right (f : ContinuousAddChar B C) :
---     Continuous fun g : ContinuousAddChar A B => f.comp g :=
---   (inducing_toContinuousMap A C).continuous_iff.2 <|
---     f.toContinuousMap.continuous_comp.comp (inducing_toContinuousMap A B).continuous
-
--- variable (E)
-
--- /-- `ContinuousAddChar _ f` is a functor. -/
--- def compLeft (f : ContinuousAddChar A B) :
---     ContinuousAddChar (ContinuousAddChar B E) (ContinuousAddChar A E) where
---   toFun g := g.comp f
---   map_one' := rfl
---   map_mul' _g _h := rfl
---   continuous_toFun := f.continuous_comp_left
-
--- variable (A) {E}
-
--- /-- `ContinuousAddChar f _` is a functor. -/
--- def compRight {B : Type*} [CommGroup B] [TopologicalSpace B] [TopologicalGroup B]
---     (f : ContinuousAddChar B E) :
---     ContinuousAddChar (ContinuousAddChar A B) (ContinuousAddChar A E) where
---   toFun g := f.comp g
---   map_one' := ext fun _a => map_one f
---   map_mul' g h := ext fun a => map_mul f (g a) (h a)
---   continuous_toFun := f.continuous_comp_right
 
 end ContinuousAddChar

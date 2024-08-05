@@ -64,10 +64,10 @@ instance messpc_hat (G : Type) [Group G] [AddGroup G] [TopologicalSpace G]
 
 theorem FourierInversionFormula (G : Type) [Group G] [AddGroup G] [TopologicalSpace G]
     [LocallyCompactSpace G] [T2Space G] [MeasurableSpace G]
-    [CommRing G] -- Why is this needed here but not in the notes?
+    [CommRing G]
     [MeasurableSpace (AddChar G ↥circle)] -- Prove so you don't have to assume?
     (μ : MeasureTheory.Measure G) [μ.IsHaarMeasure] (w : G):
     ∃ (μ_hat : MeasureTheory.Measure (AddChar G circle)), μ.IsHaarMeasure ∧
-    ∀ (f : G → ℂ), ∀ y : G, f ∈ V1G → f y = ∫ x, (f_hat G μ f w) x ∂μ_hat := by -- What's the issue here?
-
+    ∀ (f : G → ℂ), ∀ y : G, f ∈ (V1G G μ) → f y = ∫ x, (f_hat G μ f w) ((starRingEnd ℂ) x) ∂μ_hat := by
+    -- How to add complex conjugation? Do i need to define conjugate characters?
   sorry
