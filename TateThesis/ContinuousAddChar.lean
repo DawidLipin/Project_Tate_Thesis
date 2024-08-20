@@ -59,7 +59,7 @@ def mk' (f : AddChar A C) (hf : Continuous f) : ContinuousAddChar A C :=
   { f with continuous_toFun := (hf : Continuous f.toFun)}
 
 @[simp]
-lemma mk_apply (f : AddChar A C) (hf : Continuous f) : ContinuousAddChar.mk f hf a = f a := rfl
+lemma mk_apply (f : AddChar A C) (hf : Continuous f) (a : A) : ContinuousAddChar.mk f hf a = f a := rfl
 
 /-- Product of two continuous homomorphisms on the same space. -/
 def prod (f : ContinuousAddChar A C) (g : ContinuousAddChar A D) :
@@ -235,6 +235,8 @@ theorem exttest {f g : ContinuousAddChar A C} (h : ∀ x, f x = g x) : f = g :=
   DFunLike.ext _ _ h
 
 lemma map_add_mul (ψ : ContinuousAddChar A C) (x y : A) : ψ (x + y) = ψ x * ψ y := ψ.map_add_mul' x y
+
+lemma mul_apply (ψ φ : ContinuousAddChar A F) (a : A) : (ψ * φ) a = ψ a * φ a := rfl
 
 instance instCommGroup : CommGroup (ContinuousAddChar G F) :=
   { instCommMonoid F with

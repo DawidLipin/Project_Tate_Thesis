@@ -1,7 +1,8 @@
-import Mathlib
 import AdeleRingLocallyCompact.RingTheory.DedekindDomain.FiniteSAdeleRing
 import AdeleRingLocallyCompact.NumberTheory.NumberField.InfiniteAdeleRing
 import AdeleRingLocallyCompact.NumberTheory.NumberField.AdeleRing
+import TateThesis.ContinuousAddChar
+-- import TateThesis.SetZ
 
 noncomputable section
 
@@ -21,9 +22,11 @@ theorem locallyCompactSpace : LocallyCompactSpace (adeleRing K) := by
 instance adeleRingLocallyCompact : LocallyCompactSpace (adeleRing K) := by
   exact locallyCompactSpace K
 
-instance quotientAdeleK : HasQuotient (adeleRing K)ˣ Kˣ := by
-  sorry
+instance messpc_hat :  MeasurableSpace (adeleRing K) :=
+  by exact borel (adeleRing K)
 
--- How to define the quotient
-def ζ (f : (adeleRing K) → ℂ) (c : ((adeleRing K)ˣ ⧸ Kˣ)) : (AddChar (adeleRing K) circle) → ℂ :=
-  fun e => (Fourier.fourierIntegral e f w)
+def ζ (f : (adeleRing K) → ℂ) (c : (ContinuousAddChar (adeleRing K) circle))
+    (μ : MeasureTheory.Measure (adeleRing K)) [μ.IsAddHaarMeasure] : ℂ :=
+  (Fourier.fourierIntegral c.1 μ f 1)
+
+-- theorem MainTheorem (f : SetZ.ZSet) : 1=1 := sorry
