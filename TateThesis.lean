@@ -3,5 +3,5 @@
 import «TateThesis».ContinuousAddChar
 import «TateThesis».GlobalNorm
 import «TateThesis».IsoAdeleDual
--- import «TateThesis».MainTheorem
--- import «TateThesis».SetZ
+import «TateThesis».MainTheorem
+import «TateThesis».SetZ
