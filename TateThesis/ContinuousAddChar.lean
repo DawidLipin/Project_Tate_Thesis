@@ -1,6 +1,20 @@
+/-
+Many of the thoerems and their proofs in this file are based on the following mathlib files:
+Mathlib.Topology.Algebra.ContinuousMonoidHom,
+Mathlib.Algebra.Group.AddChar
+-/
+
 import Mathlib.Algebra.Group.AddChar
 import Mathlib.Topology.ContinuousFunction.Algebra
 import Mathlib.Topology.Algebra.ContinuousMonoidHom
+
+/-!
+
+# Continuous Additive Characters
+
+This file defines the space of continuous additive characters between two topological groups.
+
+-/
 
 open Pointwise Function AddChar
 
@@ -13,22 +27,18 @@ variable (A B C D E F G H : Type*)
   [CommMonoid H] [TopologicalSpace H]
 
 
+/-- Definition of ContinuousAddChar. -/
 structure ContinuousAddChar (A B : Type*) [AddMonoid A] [Monoid B] [TopologicalSpace A]
   [TopologicalSpace B] extends (AddChar A B) where
   /-- Proof of continuity of the Hom. -/
   continuous_toFun : @Continuous A B _ _ toFun
 
 
--- -- /-- Reinterpret a `ContinuousAddChar` as a `AddChar`. -/
--- add_decl_doc ContinuousAddChar.toAddChar
-
--- -- /-- Reinterpret a `ContinuousAddChar` as an `AddChar`. -/
--- add_decl_doc ContinuousAddChar.toAddChar
-
 namespace ContinuousAddChar
 
 variable {A B C D E}
 
+/-- Define coercion to a function. -/
 instance funLike : FunLike (ContinuousAddChar A C) A C where
   coe f := f.toFun
   coe_injective' f g h := by
@@ -49,19 +59,21 @@ theorem ext' {f g : ContinuousAddChar A C}: (∀ x, f x = g x) ↔ f = g := by
   · intro h1 x
     exact congrFun (congrArg DFunLike.coe h1) x
 
+/-- Reinterpret a `ContinuousAddChar` as a `ContinuousMap`. -/
 def toContinuousMap (f : ContinuousAddChar A C) : C(A, C) :=
   { f with }
 
 theorem toContinuousMap_injective : Injective (toContinuousMap : _ → C(A, C)) := fun f g h =>
   ext <| by convert DFunLike.ext_iff.1 h
 
+/-- Construct a `ContinuousAddChar` from a `Continuous` `AddChar`. -/
 def mk' (f : AddChar A C) (hf : Continuous f) : ContinuousAddChar A C :=
   { f with continuous_toFun := (hf : Continuous f.toFun)}
 
 @[simp]
 lemma mk_apply (f : AddChar A C) (hf : Continuous f) (a : A) : ContinuousAddChar.mk f hf a = f a := rfl
 
-/-- Product of two continuous homomorphisms on the same space. -/
+/-- Product of two continuous additive characters on the same space. -/
 def prod (f : ContinuousAddChar A C) (g : ContinuousAddChar A D) :
     ContinuousAddChar A (C × D) where
   toFun := Pi.prod f g
@@ -78,7 +90,7 @@ def prod (f : ContinuousAddChar A C) (g : ContinuousAddChar A D) :
     exact Continuous.prod_mk hf hg
 
 
-/-- Product of two continuous homomorphisms on different spaces. -/
+/-- Product of two continuous additive characters on different spaces. -/
 def prod_map (f : ContinuousAddChar A C) (g : ContinuousAddChar B D) :
     ContinuousAddChar (A × B) (C × D) :=
   mk' ({
@@ -98,7 +110,7 @@ def prod_map (f : ContinuousAddChar A C) (g : ContinuousAddChar B D) :
       · exact map_add_mul g a.2 b.2
   }) (f.continuous_toFun.prod_map g.continuous_toFun)
 
-/-- The trivial continuous homomorphism. -/
+/-- The trivial continuous additive characters. -/
 def one : ContinuousAddChar A C :=
   mk' 1 continuous_const
 
@@ -109,7 +121,7 @@ instance instOne : One (ContinuousAddChar A C) := ⟨1, continuous_const⟩
 instance : Inhabited (ContinuousAddChar A C) :=
   ⟨one⟩
 
-/-- Coproduct of two continuous homomorphisms to the same space. -/
+/-- Coproduct of two continuous additive characters to the same space. -/
 def coprod (f : ContinuousAddChar A F) (g : ContinuousAddChar B F) :
     ContinuousAddChar (A × B) F where
       toFun := fun x => f x.1 * g x.2
@@ -132,7 +144,7 @@ def coprod (f : ContinuousAddChar A F) (g : ContinuousAddChar B F) :
         · exact Continuous.comp hf (Continuous.fst continuous_id)
         · exact Continuous.comp hg (Continuous.snd continuous_id)
 
--- Already have AddCharinstCommGroup
+
 instance instCommMonoid : CommMonoid (ContinuousAddChar A F) where
   mul f g := {
     toFun := f.toFun * g.toFun,
@@ -200,8 +212,7 @@ theorem closedEmbedding_toContinuousMap [ContinuousMul C] [T2Space C] :
 instance [T2Space C] : T2Space (ContinuousAddChar A C) :=
   (embedding_toContinuousMap).t2Space
 
------------------------------------------ Extra stuff
-
+/-- Equivalence between `ContinuousAddChar` and `ContinuousMonoidHom` with multiplicative domain. -/
 def toContinuousMonoidHomEquiv : ContinuousAddChar A C ≃ (ContinuousMonoidHom (Multiplicative A) C) where
   toFun φ := ⟨φ.toMonoidHom, φ.2⟩
   invFun f :=
@@ -212,6 +223,7 @@ def toContinuousMonoidHomEquiv : ContinuousAddChar A C ≃ (ContinuousMonoidHom 
   left_inv _ := rfl
   right_inv _ := rfl
 
+/-- Equivalence between `ContinuousAddChar` and `ContinuousMonoidHom` with additive codomain. -/
 def toContinuousAddMonoidHomEquiv : ContinuousAddChar A C ≃ (ContinuousAddMonoidHom A (Additive C)) where
   toFun φ := ⟨φ.toAddMonoidHom, φ.2⟩
   invFun f :=
@@ -222,23 +234,32 @@ def toContinuousAddMonoidHomEquiv : ContinuousAddChar A C ≃ (ContinuousAddMono
   left_inv _ := rfl
   right_inv _ := rfl
 
+/-- Convert `ContinuousAddChar` to `ContinuousMonoidHom` with additive codomain. -/
 def toContinuousAddMonoidHom (φ : ContinuousAddChar A C) : (ContinuousAddMonoidHom A (Additive C)) where
   toFun := toContinuousAddMonoidHomEquiv φ
   continuous_toFun := φ.continuous_toFun
   map_zero' := φ.map_zero_one'
   map_add' := φ.map_add_mul'
 
+/-- The natural equivalence to `(Multiplicative A →* F)` is a monoid isomorphism
+under stronger assumptions on codomain than `toContinuousMonoidHomEquiv`. -/
+def toMonoidHomMulEquiv : AddChar A F ≃* (Multiplicative A →* F) :=
+  { toMonoidHomEquiv A F with map_mul' := fun φ ψ ↦ by rfl }
+
+/-- Additive characters `A → F` are the same thing as additive homomorphisms from `A` to
+`Additive F` under stronger assumptions on codomain than `toContinuousAddMonoidHomEquiv`. -/
+def toAddMonoidAddEquiv : Additive (AddChar A F) ≃+ (A →+ Additive F) :=
+  { toAddMonoidHomEquiv A F with map_add' := fun φ ψ ↦ by rfl }
+
+/-- Composition of `ContinuousAddChar` with `ContinuousAddMonoidHom` is an `ContinuousAddChar`. -/
 def compAddMonoidHom (φ : ContinuousAddChar B C) (f : ContinuousAddMonoidHom A B) : ContinuousAddChar A C :=
   (toContinuousAddMonoidHomEquiv).symm ((toContinuousAddMonoidHom φ).comp f)
-
-theorem exttest {f g : ContinuousAddChar A C} (h : ∀ x, f x = g x) : f = g :=
-  DFunLike.ext _ _ h
 
 lemma map_add_mul (ψ : ContinuousAddChar A C) (x y : A) : ψ (x + y) = ψ x * ψ y := ψ.map_add_mul' x y
 
 lemma mul_apply (ψ φ : ContinuousAddChar A F) (a : A) : (ψ * φ) a = ψ a * φ a := rfl
 
-instance instCommGroup : CommGroup (ContinuousAddChar G F) :=
+instance : CommGroup (ContinuousAddChar G F) :=
   { instCommMonoid F with
     inv := fun ψ ↦ (ψ.compAddMonoidHom (ContinuousAddMonoidHom.neg G))
     mul_left_inv := by
@@ -255,6 +276,7 @@ instance instCommGroup : CommGroup (ContinuousAddChar G F) :=
       rw [h4]
       rfl
       }
+
 @[simp]
 lemma inv_apply (ψ : ContinuousAddChar G F) (x : G) : ψ⁻¹ x = ψ (-x) := rfl
 
@@ -264,9 +286,9 @@ lemma map_neg_inv (ψ : ContinuousAddChar G F) (a : G) : ψ (-a) = (ψ a)⁻¹ :
   simp only [← map_add_mul, add_left_neg, map_zero_one]
   exact ψ.map_zero_one'
 
-lemma inv_apply' (ψ : ContinuousAddChar G F) (x : G) : ψ⁻¹ x = (ψ x)⁻¹ := by simp
+lemma inv_apply' (ψ : ContinuousAddChar G F) (x : G) : ψ⁻¹ x = (ψ x)⁻¹ := by
+  simp only [inv_apply, map_neg_inv]
 
------------------------------------------
 
 instance : ContinuousInv (ContinuousAddChar G F) where
   continuous_inv := by
@@ -289,5 +311,6 @@ theorem continuous_of_continuous_uncurry {A : Type*} [TopologicalSpace A]
     Continuous f :=
   (inducing_toContinuousMap).continuous_iff.mpr
     (ContinuousMap.continuous_of_continuous_uncurry _ h)
+
 
 end ContinuousAddChar
