@@ -26,7 +26,7 @@ TODO:
 
 noncomputable section
 
-open NumberField DedekindDomain VectorFourier MeasureTheory.Measure IsDedekindDomain ContinuousAddChar
+open NumberField DedekindDomain VectorFourier MeasureTheory.Measure IsDedekindDomain ContinuousAddChar IsDedekindDomain.HeightOneSpectrum
 
 variable (K : Type*) [Field K] [NumberField K]
 
@@ -78,7 +78,17 @@ lemma ψ_set_triv (a : v2.adicCompletion K) (ha: a ≠ 0):
       ∀ (x : v2.adicCompletion K), (ContMulShift K v2 φ a) x = 1} ⊆ {1} := by
     intro f hf
     by_contra hcontr
-    sorry
+    simp at hcontr
+    rw [← ne_eq] at hcontr
+    have h3: ∀ (x : v2.adicCompletion K), (ContMulShift K v2 f a) x = 1 := by exact hf
+    have h4: ContMulShift K v2 f a = 1 := by
+      rw [← ContinuousAddChar.ext']
+      exact h3
+    have h5: f = 1 := by
+      rw [ContMulShiftTrivFunTriv K v2 f a ha] at h4
+      exact h4
+    exact hcontr h5
+
   exact Set.Subset.antisymm h2 h1
 
 
@@ -107,13 +117,7 @@ abbrev ContMulShiftAdd: (v2.adicCompletion K) →+ Additive (ContinuousAddChar (
 
 /-- Proof that a shifted trivial character is trivial (additive version)-/
 lemma ContMulShiftTrivFunTrivAdd (a : v2.adicCompletion K) (ha: a ≠ 0): (ContMulShiftAdd K v2 ψ a) = 0 ↔ ψ = 1 := by
-  constructor <;> intro h1 <;> rw [← ContinuousAddChar.ext'] at * <;> intro x
-  <;> simp only [ContinuousAddChar.one_apply] at *
-  · specialize h1 (a⁻¹*x)
-    unfold ContMulShiftAdd at h1
-    sorry
-  · specialize h1 (a*x)
-    sorry
+  exact ContMulShiftTrivFunTriv K v2 ψ a ha
 
 /-- Proof that our function ContMulShiftAdd is injective (additive version)-/
 lemma MulShiftAddInjective (hψ : ψ ≠ 1): Function.Injective (ContMulShiftAdd K v2 ψ) := by
@@ -129,11 +133,34 @@ lemma MulShiftAddInjective (hψ : ψ ≠ 1): Function.Injective (ContMulShiftAdd
 -- TODO: This definition needs to be adjusted to be defined for closed subgroups rather than sets.
 /-- Function between a subset of a completion at an infinite place and a subset of its pontryagin dual.
 This will be used to show that X = {0} iff Φ(X) is the whole space of Pontryagin duals.
-From this fdact it will follow that the closure of the range of ContMulShiftAdd
+From this fact it will follow that the closure of the range of ContMulShiftAdd
 is equal to the whole space of Pontryagin duals, hence the range is dense. -/
 def Φ: (Set (v2.adicCompletion K)) → (Set (ContinuousAddChar (v2.adicCompletion K) circle)) :=
   fun X ↦ {φ : (ContinuousAddChar (v2.adicCompletion K) circle) | ∀ x ∈ X, φ x = 1}
 
+instance test (hψ : ψ ≠ 1) (X : (AddSubgroup (v2.adicCompletion K))):
+    AddGroup {φ : Additive (ContinuousAddChar (v2.adicCompletion K) circle) | ∀ (x : X), φ x = 1} := by
+      -- where
+      sorry
+      -- add := _
+      -- add_assoc := _
+      -- zero := _
+      -- zero_add := _
+      -- add_zero := _
+      -- nsmul := _
+      -- nsmul_zero := _
+      -- nsmul_succ := _
+      -- neg := _
+      -- sub := _
+      -- sub_eq_add_neg := _
+      -- zsmul := _
+      -- zsmul_zero' := _
+      -- zsmul_succ' := _
+      -- zsmul_neg' := _
+      -- add_left_neg := _
+
+-- def Φ2: (AddSubgroup (v2.adicCompletion K)) → (AddSubgroup (Additive (ContinuousAddChar (v2.adicCompletion K) circle))) :=
+--   fun X ↦ {φ : Additive (ContinuousAddChar (v2.adicCompletion K) circle) | ∀ (x : X), φ x = 1}
 
 /-- Proof that the range of ContMulShiftAdd is dense. -/
 lemma DanseRangeContMulShiftAdd (hψ : ψ ≠ 1):
@@ -175,3 +202,11 @@ def LocalHatIso (hψ : ψ ≠ 1): (v2.adicCompletion K) ≃ (ContinuousAddChar (
   invFun := (ContMulShiftAddInv K v2 ψ hψ).choose
   left_inv := (ContMulShiftAddInv K v2 ψ hψ).choose_spec.left
   right_inv := (ContMulShiftAddInv K v2 ψ hψ).choose_spec.right
+
+/-- Isomorphism between a completion at an infinite place and its Pontryagin dual as an additive group. -/
+def LocalHatIsoAdd (hψ : ψ ≠ 1): (v2.adicCompletion K) ≃+ Additive (ContinuousAddChar (v2.adicCompletion K) circle) where
+  toFun := ContMulShiftAdd K v2 ψ
+  invFun := (ContMulShiftAddInv K v2 ψ hψ).choose
+  left_inv := (ContMulShiftAddInv K v2 ψ hψ).choose_spec.left
+  right_inv := (ContMulShiftAddInv K v2 ψ hψ).choose_spec.right
+  map_add' := by simp only [_root_.map_add, AddMonoidHom.coe_mk, ZeroHom.coe_mk, forall_const]
