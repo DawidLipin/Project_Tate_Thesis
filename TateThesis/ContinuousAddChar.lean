@@ -184,6 +184,7 @@ instance instCommMonoid : CommMonoid (ContinuousAddChar A F) where
 instance : TopologicalSpace (ContinuousAddChar A C) :=
   TopologicalSpace.induced toContinuousMap ContinuousMap.compactOpen
 
+/-- Interpret an continuous additive character as a continuous map. -/
 theorem inducing_toContinuousMap : Inducing (toContinuousMap : ContinuousAddChar A C → C(A, C)) :=
   ⟨rfl⟩
 

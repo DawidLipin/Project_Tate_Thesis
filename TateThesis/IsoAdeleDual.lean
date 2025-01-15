@@ -135,32 +135,38 @@ lemma MulShiftAddInjective (hψ : ψ ≠ 1): Function.Injective (ContMulShiftAdd
 This will be used to show that X = {0} iff Φ(X) is the whole space of Pontryagin duals.
 From this fact it will follow that the closure of the range of ContMulShiftAdd
 is equal to the whole space of Pontryagin duals, hence the range is dense. -/
-def Φ: (Set (v2.adicCompletion K)) → (Set (ContinuousAddChar (v2.adicCompletion K) circle)) :=
-  fun X ↦ {φ : (ContinuousAddChar (v2.adicCompletion K) circle) | ∀ x ∈ X, φ x = 1}
 
-instance test (hψ : ψ ≠ 1) (X : (AddSubgroup (v2.adicCompletion K))):
-    AddGroup {φ : Additive (ContinuousAddChar (v2.adicCompletion K) circle) | ∀ (x : X), φ x = 1} := by
-      -- where
+-- def Φ: (Set (v2.adicCompletion K)) → (Set (ContinuousAddChar (v2.adicCompletion K) circle)) :=
+--   fun X ↦ {φ : (ContinuousAddChar (v2.adicCompletion K) circle) | ∀ x ∈ X, φ x = 1}
+
+def Φ: (AddSubgroup (v2.adicCompletion K)) → (AddSubgroup (Additive (ContinuousAddChar (v2.adicCompletion K) circle))) :=
+  fun X ↦ AddSubgroup.closure {φ : Additive (ContinuousAddChar (v2.adicCompletion K) circle) | ∀ (x : X), φ x = 1}
+
+instance : Singleton (HeightOneSpectrum.adicCompletion K v2) (AddSubgroup (HeightOneSpectrum.adicCompletion K v2)) := by
+  exact { singleton := fun a ↦ AddSubgroup.closure {a} }
+
+instance : Singleton (Additive (ContinuousAddChar (HeightOneSpectrum.adicCompletion K v2) ↥circle))
+    (AddSubgroup (Additive (ContinuousAddChar (HeightOneSpectrum.adicCompletion K v2) ↥circle))) := by
+  exact { singleton := fun a ↦ AddSubgroup.closure {a} }
+
+
+/-- Equality of sets of identity elements needed for furthere proofs -/
+lemma sets_eq_id (X : AddSubgroup (v2.adicCompletion K)):
+    Φ K v2 {(1 : (v2.adicCompletion K))} = {(0 : (Additive (ContinuousAddChar (v2.adicCompletion K) circle)))}:= by
+  have h1: AddSubgroup.closure {φ : Additive (ContinuousAddChar (v2.adicCompletion K) circle) | φ 1 = 1} = {(0 : (Additive (ContinuousAddChar (v2.adicCompletion K) circle)))} := by
+    have h3: ∀ (φ : Additive (ContinuousAddChar (v2.adicCompletion K) circle)), φ 1 = 1 → φ = 0 := by
+      have h4: (0 : Additive (ContinuousAddChar (v2.adicCompletion K) circle)) 1 = 1 := rfl
+      intro φ
+      rw [← h4]
+      -- nth_rw 2 [← test3]
+      rw [← ext']
+      intro x
       sorry
-      -- add := _
-      -- add_assoc := _
-      -- zero := _
-      -- zero_add := _
-      -- add_zero := _
-      -- nsmul := _
-      -- nsmul_zero := _
-      -- nsmul_succ := _
-      -- neg := _
-      -- sub := _
-      -- sub_eq_add_neg := _
-      -- zsmul := _
-      -- zsmul_zero' := _
-      -- zsmul_succ' := _
-      -- zsmul_neg' := _
-      -- add_left_neg := _
+    sorry
+  unfold Φ
+  rw [← h1]
+  sorry
 
--- def Φ2: (AddSubgroup (v2.adicCompletion K)) → (AddSubgroup (Additive (ContinuousAddChar (v2.adicCompletion K) circle))) :=
---   fun X ↦ {φ : Additive (ContinuousAddChar (v2.adicCompletion K) circle) | ∀ (x : X), φ x = 1}
 
 /-- Proof that the range of ContMulShiftAdd is dense. -/
 lemma DanseRangeContMulShiftAdd (hψ : ψ ≠ 1):
@@ -169,6 +175,7 @@ lemma DanseRangeContMulShiftAdd (hψ : ψ ≠ 1):
   unfold Dense
   intro φ S h1
   cases' h1 with h1 h2
+
   sorry
 
 /-- Proof that the range of ContMulShiftAdd is closed. -/

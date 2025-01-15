@@ -16,12 +16,12 @@ This file first defined the norms on the infinite and finite adeles and then use
 
 ## SetZ.lean
 
-This file define the set $$Z$$ of function for which the main theorem is defined.
+This file define the set $$Z$$ of functions for which the main theorem is defined.
 
 ## IsoAdeleDual.lean
 
 This file is not finished yet. The goal is to define an isomorphism between the adele ring and it's Pontryagin dual (as additive groups).
 
-## IsoAdeleDual.lean
+## MainTheorem.lean
 
 This file is not finished yet. The goal is to state and prove the main theorem. Currently the file contains a definition of the zeta function and the statement of the functional equation. However, the characters are defined over the ideles rather than their quotient by $$K$$.
